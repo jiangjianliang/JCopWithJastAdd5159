@@ -15,10 +15,22 @@ import org.aspectj.tools.ajc.Main;
 
 import AST.Program;
 
+/**
+ * Documented by wander
+ * 
+ * weave *.aj file to source code
+ * 
+ * @see jcop.compiler.JCopCompiler#compileLayersAndAspects()
+ */
 public class AspectWeaver {
 	private final String aspectFile = "JCopAspect.aj";
 	private CompilerMessageStream msg =	CompilerMessageStream.getInstance();
 	
+	/**
+	 * weave JCopAspect.aj into source code and log
+	 * 
+	 * @return
+	 */
 	public boolean weave() {		
 		try {				
 			msg.maybeLogTask(Msg.compileAndWeaveAspect);						
@@ -31,8 +43,14 @@ public class AspectWeaver {
 			System.exit(1);
 			return false;
 		}
-	} 
+	}
 	
+	/**
+	 * weave JCopAspect.aj into source code with help of {@link org.aspectj.tools.ajc.Main AspectJ}
+	 * 
+	 * @param aspect
+	 * @return
+	 */
 	private boolean run(File aspect) {
 		PathList workingDir = new PathList(getWorkingDir());
 		CompilerMessageStream.getInstance().maybeLog(workingDir + File.separator + aspect);
@@ -42,7 +60,7 @@ public class AspectWeaver {
 		Main compiler = new Main();
 		msg.maybeLogTask(Arrays.asList(args.toArray()).toString());		
 		compiler.run(args.toArray(), m);
-		printMessages(m);		
+		printMessages(m);
 		return !containsErrors(m);
 	}
   
@@ -70,7 +88,11 @@ public class AspectWeaver {
 			inpath.add(Program.getValueForOption(CompilerOps.inpath));		
 		args.addKeyValueArg(CompilerOps.inpath, inpath);		
 	}
-
+	
+	/**
+	 * add classpath to AspectJ tools
+	 * @param args
+	 */
 	private void addCP(CompilerArgs args) {		
 		//instead, I try this
 		if (Program.hasValueForOption(CompilerOps.classpath)) {

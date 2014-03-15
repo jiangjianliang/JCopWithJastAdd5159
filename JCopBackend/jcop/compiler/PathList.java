@@ -1,7 +1,12 @@
 package jcop.compiler;
 
 import java.io.File;
-
+/**
+ * Documented by wander
+ * 
+ * represent list of paths with paths separated by {@link java.io.File#pathSeparator pathSeparator} ; or :
+ * 
+ */
 public class PathList implements CharSequence {
 	private StringBuffer content;
 	

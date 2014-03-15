@@ -5,28 +5,38 @@ import AST.LayerDeclaration;
 import AST.MethodDecl;
 import AST.OpenLayerDecl;
 
+/**
+ * Documented by wander,
+ * 
+ * <pre>
+ * generate constructs for {@link MethodDecl}
+ * </pre>
+ * 
+ */
 public class LayeredMethodGenerator extends LayerMemberGenerator {
 	protected MethodDecl partialMethod;
 	protected MethodDecl baseMethod;
 	private LayerDeclaration layerDecl;
-	
+
 	public LayeredMethodGenerator(MethodDecl partialMethod) {
 		this.partialMethod = partialMethod;
 		this.baseMethod = Lookup.lookupMethodCorrespondingTo(partialMethod);
 	}
-	
-	public LayeredMethodGenerator(MethodDecl partialMethod, MethodDecl baseMethod) {
+
+	public LayeredMethodGenerator(MethodDecl partialMethod,
+			MethodDecl baseMethod) {
 		this.partialMethod = partialMethod;
-		this.baseMethod = baseMethod;				
+		this.baseMethod = baseMethod;
 	}
-	
+
 	public void setBaseMethod(MethodDecl baseMethod) {
-		this.baseMethod = baseMethod;	
+		this.baseMethod = baseMethod;
 	}
-	
-	  public LayerDeclaration getLayer() {
-		    if (this.layerDecl == null)
-		      this.layerDecl = ((LayerDeclaration)this.partialMethod.getParent().getParent());
-		    return this.layerDecl;
-		  }
+
+	public LayerDeclaration getLayer() {
+		if (this.layerDecl == null)
+			this.layerDecl = ((LayerDeclaration) this.partialMethod.getParent()
+					.getParent());
+		return this.layerDecl;
+	}
 }

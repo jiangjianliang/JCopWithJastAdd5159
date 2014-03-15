@@ -28,102 +28,148 @@ import AST.StringLiteral;
 import AST.ThisAccess;
 import AST.VarAccess;
 
+/**
+ * Documented by wander,
+ * 
+ * transform {@link AST.ContextDecl ContextDecl} into {@link AST.ClassDecl
+ * ClassDecl} with {@link jcop.generation.ContextGenerator ContextGenerator}.
+ * 
+ * contextclass xxx {...} is transformed into class xxx{...}
+ */
 public class ContextTransformer extends Transformer {
 	private ContextDecl contextDecl;
 	private java.util.List<String> executionSignatures;
 	private ContextGenerator gen;
 	private boolean isStatic;
-	
-	public ContextTransformer(ContextDecl context) {				
+
+	public ContextTransformer(ContextDecl context) {
 		this.contextDecl = context;
 		this.executionSignatures = new ArrayList<String>();
 		this.gen = new ContextGenerator(contextDecl);
 		parseModifiers(context);
 	}
 
+	/**
+	 * transform ContextDecl's modifiers into ClassDecl's modifiers for
+	 * ContextDecl, modifier 'staticactive' should be removed in order to
+	 * generate new modifiers
+	 * 
+	 * @param context
+	 */
 	private void parseModifiers(ContextDecl context) {
-		this.isStatic = context.getModifiers().contains(Modifiers.STATIC_ACTIVE);		
+		this.isStatic = context.getModifiers()
+				.contains(Modifiers.STATIC_ACTIVE);
 		AST.Modifiers old = context.getModifiersNoTransform();
-		AST.Modifiers newModifiers = gen.removeModifiers(old, Modifiers.STATIC_ACTIVE);
-		old.setModifierList(newModifiers.getModifierList());		
+		AST.Modifiers newModifiers = gen.removeModifiers(old,
+				Modifiers.STATIC_ACTIVE);
+		old.setModifierList(newModifiers.getModifierList());
 	}
 
-	protected ASTNode<?> transform() {		
-		ClassDecl contextClass = gen.generateContextClass(); 				
-		ContextConstraint contextConstraint = contextDecl.getContextConstraint();
-		Expr transformedPointcut = 
-			transformPointcutExpr(contextConstraint.getConstraintDefinitionNoTransform());
-		PointcutExpr pointcutSignature = contextConstraint.getConstraintDefinitionNoTransform();//.toString();// "";
-//		System.out.println(transformedPointcut);
-		MethodDecl isActiveMethod = gen.createIsActiveForMethod(transformedPointcut);
+	/**
+	 * 
+	 * @see jcop.generation.jcopaspect.ContextClassAdviceGenerator
+	 *      ContextClassAdviceGenerator
+	 * @see jcop.generation.jcopaspect.StaticContextObjectAdviceGenerator
+	 *      StaticContextObjectAdviceGenerator
+	 */
+	protected ASTNode<?> transform() {
+		ClassDecl contextClass = gen.generateContextClass();
+		ContextConstraint contextConstraint = contextDecl
+				.getContextConstraint();
+		Expr transformedPointcut = transformPointcutExpr(contextConstraint
+				.getConstraintDefinitionNoTransform());
+		PointcutExpr pointcutSignature = contextConstraint
+				.getConstraintDefinitionNoTransform();// .toString();// "";
+		// System.out.println(transformedPointcut);
+		MethodDecl isActiveMethod = gen
+				.createIsActiveForMethod(transformedPointcut);
 		contextClass.addMemberMethod(isActiveMethod);
-		
-		JCopAspect.getInstance().addContextActivations(contextDecl, pointcutSignature, executionSignatures);
-		
+
+		JCopAspect.getInstance().addContextActivations(contextDecl,
+				pointcutSignature, executionSignatures);
+
 		if (isStatic) {
 			JCopAspect.getInstance().addStaticContextActivation(contextDecl);
 		}
 		return contextClass;
 	}
 
+	/**
+	 * generate a {@link AST.Expr Expr} for {@link AST.PointcutExpr
+	 * PointcutExpr}
+	 * 
+	 * @param pointcutExpr
+	 * @return
+	 */
 	private Expr transformPointcutExpr(PointcutExpr pointcutExpr) {
 		Class c = pointcutExpr.getClass();
 		if (c.equals(IfPointcutExpr.class)) {
 			return transformPointcutExpr((IfPointcutExpr) pointcutExpr);
-		}
-		else if (c.equals(AndPointcutExpr.class)) {
+		} else if (c.equals(AndPointcutExpr.class)) {
 			return transformPointcutExpr((AndPointcutExpr) pointcutExpr);
-		}
-		else if (c.equals(OrPointcutExpr.class)) {
+		} else if (c.equals(OrPointcutExpr.class)) {
 			return transformPointcutExpr((OrPointcutExpr) pointcutExpr);
-		}
-		else if (c.equals(ExecutionPointcutExpr.class)) {
+		} else if (c.equals(ExecutionPointcutExpr.class)) {
 			return transformPointcutExpr((ExecutionPointcutExpr) pointcutExpr);
 		}
 		return new BooleanLiteral(true);
 	}
-	
-	private Expr transformPointcutExpr(IfPointcutExpr pointcutExpr) {		
-		return  (Expr) pointcutExpr.getExpr().fullCopy();
+
+	/**
+	 * generate a {@link AST.Expr Expr} for {@link AST.IfPointcutExpr
+	 * IfPointcutExpr} when --> if
+	 * 
+	 * @param pointcutExpr
+	 * @return
+	 */
+	private Expr transformPointcutExpr(IfPointcutExpr pointcutExpr) {
+		return (Expr) pointcutExpr.getExpr().fullCopy();
 	}
 
-	 private Expr transformPointcutExpr(AndPointcutExpr pointcutExpr) {
-		    return new ParExpr(
-		      new AndLogicalExpr(
-		      transformPointcutExpr(pointcutExpr.getLhsNoTransform()), 
-		      transformPointcutExpr(pointcutExpr.getRhsNoTransform())));
-		  }
+	private Expr transformPointcutExpr(AndPointcutExpr pointcutExpr) {
+		return new ParExpr(new AndLogicalExpr(
+				transformPointcutExpr(pointcutExpr.getLhsNoTransform()),
+				transformPointcutExpr(pointcutExpr.getRhsNoTransform())));
+	}
 
-		  private Expr transformPointcutExpr(OrPointcutExpr pointcutExpr) {
-		    return new ParExpr(
-		      new OrLogicalExpr(
-		      transformPointcutExpr(pointcutExpr.getLhsNoTransform()), 
-		      transformPointcutExpr(pointcutExpr.getRhsNoTransform())));
-		  }
+	private Expr transformPointcutExpr(OrPointcutExpr pointcutExpr) {
+		return new ParExpr(new OrLogicalExpr(
+				transformPointcutExpr(pointcutExpr.getLhsNoTransform()),
+				transformPointcutExpr(pointcutExpr.getRhsNoTransform())));
+	}
 
+	/**
+	 * generate a {@link AST.Expr Expr} for {@link AST.ExecutionPointcutExpr
+	 * ExecutionPointcutExpr} on ---> execution
+	 * 
+	 * <code>
+	 *   this.check(signature, ""); 
+	 * </code>
+	 * 
+	 * @param pointcutExpr
+	 * @return
+	 */
 	private Expr transformPointcutExpr(ExecutionPointcutExpr pointcutExpr) {
-		// FIXME add method call this.check(signature, resultOf --> pointcutExpr.getPattern()???		
-		// return expr: this.check(signature, "<pattern>");		
-		VarAccess signature = new VarAccess("signature");		
+		// FIXME add method call this.check(signature, resultOf -->
+		// pointcutExpr.getPattern()???
+		// return expr: this.check(signature, "<pattern>");
+		VarAccess signature = new VarAccess("signature");
 		List<Expr> checkParameters = new List<Expr>();
 		// get signature from parameter
 		checkParameters.add(signature);
 		// get the Pattern from Pointcut expr
 		String sig = pointcutExpr.getPatternNoTransform().toString();
-		sig = sig.replaceAll("  ", " ");		
-		//malte: mieees!		
+		sig = sig.replaceAll("  ", " ");
+		// malte: mieees!
 		executionSignatures.add(sig);
-		checkParameters.add(new StringLiteral(sig));		
-		MethodAccess checkMethod = new MethodAccess("check", checkParameters);		
-		Expr checkMethodAccess = new ThisAccess().qualifiesAccess(checkMethod);		
+		checkParameters.add(new StringLiteral(sig));
+		MethodAccess checkMethod = new MethodAccess("check", checkParameters);
+		Expr checkMethodAccess = new ThisAccess().qualifiesAccess(checkMethod);
 		return checkMethodAccess;
 	}
-	
+
 	private java.util.List<String> getExecutionSignatures() {
 		return executionSignatures;
 	}
-	
 
-	
-	
 }

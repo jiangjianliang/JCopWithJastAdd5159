@@ -59,7 +59,12 @@ import AST.ThisAccess;
 import AST.TypeAccess;
 import AST.TypeDecl;
 import AST.VarAccess;
-
+/**
+ * Documented by wander
+ * <pre>
+ * generate constructs for {@link LayerDeclaration}
+ * </pre>
+ */
 public class LayerClassGenerator extends LayerGenerator {
 	protected LayerDeclaration layerDecl;
 
@@ -68,7 +73,7 @@ public class LayerClassGenerator extends LayerGenerator {
 	public LayerClassGenerator(LayerDeclaration layerDecl) {
 		super(Lookup.lookupLayerClassDecl(layerDecl));
 		this.layerName = layerDecl.getID();
-		this.layerDecl = layerDecl;		
+		this.layerDecl = layerDecl;
 	}
 
 	public String getLayerName() {
@@ -83,22 +88,37 @@ public class LayerClassGenerator extends LayerGenerator {
 		return new ParameterDeclaration(createLayerTypeAccess(),
 				ID.layerParameterName);
 	}
-
+	/**
+	 * generate delegation method named{@code <generatedMethodName>} for {@code <baseMethodDecl>}
+	 * @param baseFieldDecl
+	 * @param generatedMethodName
+	 * @param delegation
+	 * @return
+	 */
 	public MethodDecl createDelegationMethod(FieldDeclaration baseFieldDecl,
 			String generatedMethodName, Expr delegation) {
-		Modifiers modifiers = getTransformedModifiersFor(baseFieldDecl);		
+		Modifiers modifiers = getTransformedModifiersFor(baseFieldDecl);
 		return new MethodDecl(modifiers,
 				getLayeredStateAccessFor(baseFieldDecl), generatedMethodName,
 				getTransformedParamsFor(baseFieldDecl), new List<Access>(),
 				genOptBlock(new ReturnStmt(delegation)));
 	}
 
+	/**
+	 * generate delegation method named {@code <generatedMethodName>} for {@code <baseMethodDecl>}
+	 * 
+	 * @param baseMethodDecl
+	 * @param generatedMethodName
+	 * @param delegation
+	 * @return
+	 */
 	public MethodDecl generateDelegationMethod(MethodDecl baseMethodDecl,
 			String generatedMethodName, Expr delegation) {
 		Modifiers modifiers = getTransformedModifiersFor(baseMethodDecl);
-		Access typeAccess = transformToFullQualified(baseMethodDecl.getTypeAccess());
-		List<ParameterDeclaration> params  = getTransformedParamsFor(baseMethodDecl);
-		
+		Access typeAccess = transformToFullQualified(baseMethodDecl
+				.getTypeAccess());
+		List<ParameterDeclaration> params = getTransformedParamsFor(baseMethodDecl);
+
 		MethodDecl method = new MethodDecl(
 				modifiers,
 				typeAccess,
@@ -108,26 +128,33 @@ public class LayerClassGenerator extends LayerGenerator {
 				params,
 				transformToFullQualifiedList(baseMethodDecl.getExceptionList()),
 				genOptBlock(maybeGenerateReturnStmt(baseMethodDecl, delegation)));
-						
+
 		return method;
 		// new Opt<Block>(new Block(new List<Stmt>().add(
 		// originalMethodDeclaration.isVoid() ? new ExprStmt(delegation) : new
 		// ReturnStmt(delegation)))));
 	}
 
-
-
-
-	
-
-
+	/**
+	 * transform list of {@link Access} into list of {@link Access}, but latter
+	 * is full-qualified
+	 * 
+	 * @param accessList
+	 * @return
+	 */
 	private List<Access> transformToFullQualifiedList(List<Access> accessList) {
 		List<Access> fqAccessList = new List<Access>();
 		for (Access access : accessList)
 			fqAccessList.add(transformToFullQualified(access));
-		return fqAccessList; 
+		return fqAccessList;
 	}
 
+	/**
+	 * transform {@link Access} into full-qualified {@link Access}
+	 * 
+	 * @param access
+	 * @return
+	 */
 	public Access transformToFullQualified(Access access) {
 		TypeDecl type = access.type();
 
@@ -173,23 +200,26 @@ public class LayerClassGenerator extends LayerGenerator {
 				new List<ParameterDeclaration>());
 	}
 
-	protected List<ParameterDeclaration> getTransformedParamsFor(MethodDecl baseMethodDecl) {
+	/**
+	 * generate list of {@link ParameterDeclaration} for baseMethodDecl.
+	 * 
+	 * @param baseMethodDecl
+	 * @return
+	 */
+	protected List<ParameterDeclaration> getTransformedParamsFor(
+			MethodDecl baseMethodDecl) {
 		List<ParameterDeclaration> params = baseMethodDecl.getParameterList();
 		params = transformToFullQualified(params);
 		return getTransformedParamsFor(baseMethodDecl, params);
 	}
 
-	private List<ParameterDeclaration> getTransformedParamsFor(MemberDecl baseMemberDecl, List<ParameterDeclaration> params) {		
-		List<ParameterDeclaration> newParams = params.fullCopy();
-		newParams.insertChild(new ParameterDeclaration(
-				createTargetAccess(baseMemberDecl), ID.targetParameterName), 0);
-		newParams.insertChild(new ParameterDeclaration(
-				JCopAccess.get(LAYER_PROXY), ID.layerProxyParameterName), 1);
-		newParams.insertChild(new ParameterDeclaration(
-				JCopAccess.get(COMPOSITION), ID.composition), 2);
-		return newParams;
-	}
-
+	/**
+	 * generate list of full-qualified {@link ParameterDeclaration} for list of
+	 * {@link ParameterDeclaration}
+	 * 
+	 * @param params
+	 * @return
+	 */
 	public List<ParameterDeclaration> transformToFullQualified(
 			List<ParameterDeclaration> params) {
 		List<ParameterDeclaration> newParams = new List<ParameterDeclaration>();
@@ -208,6 +238,25 @@ public class LayerClassGenerator extends LayerGenerator {
 		}
 		return newParams;
 	}
+	/**
+	 * 
+	 * @param baseMemberDecl
+	 * @param params
+	 * @return
+	 */
+	private List<ParameterDeclaration> getTransformedParamsFor(
+			MemberDecl baseMemberDecl, List<ParameterDeclaration> params) {
+		List<ParameterDeclaration> newParams = params.fullCopy();
+		newParams.insertChild(new ParameterDeclaration(
+				createTargetAccess(baseMemberDecl), ID.targetParameterName), 0);
+		newParams.insertChild(
+				new ParameterDeclaration(JCopAccess.get(LAYER_PROXY),
+						ID.layerProxyParameterName), 1);
+		newParams.insertChild(
+				new ParameterDeclaration(JCopAccess.get(COMPOSITION),
+						ID.composition), 2);
+		return newParams;
+	}
 
 	private Modifiers getTransformedModifiersFor(NamedMember method) {
 		Modifiers modifiers = createPublicModifierFor(method);
@@ -223,26 +272,39 @@ public class LayerClassGenerator extends LayerGenerator {
 				new List<Access>().add(fieldAccess));
 		return access;
 	}
-	
-	public List<Expr> generateArgsFromLayeredMethod(List<ParameterDeclaration> parameters) {
+
+	public List<Expr> generateArgsFromLayeredMethod(
+			List<ParameterDeclaration> parameters) {
 		List<Expr> args = generateArgs(parameters);
 		addSuperLayerParams(args);
 		return args;
 	}
-	
-	public MethodDecl genDelegationMethodToSuperLayer(MethodDecl originalMethodDecl, String genMethodName) {
-		List<Expr> args = generateArgsFromLayeredMethod(originalMethodDecl.getParameterList());		
+	/**
+	 * generate delegation method in superlayer.
+	 * <pre>
+	 * <code>
+	 *   __superlayer__{@code <genMethodName>}
+	 * </code>
+	 * </pre>
+	 * @param originalMethodDecl
+	 * @param genMethodName
+	 * @return
+	 */
+	public MethodDecl genDelegationMethodToSuperLayer(
+			MethodDecl originalMethodDecl, String genMethodName) {
+		List<Expr> args = generateArgsFromLayeredMethod(originalMethodDecl
+				.getParameterList());
 		String methodName = Globals.ID.superlayer + genMethodName;
-		Expr body = new SuperAccess().qualifiesAccess(createMethodAccess(genMethodName, args));
-		MethodDecl method = generateDelegationMethod(originalMethodDecl, methodName, body);
+		Expr body = new SuperAccess().qualifiesAccess(createMethodAccess(
+				genMethodName, args));
+		MethodDecl method = generateDelegationMethod(originalMethodDecl,
+				methodName, body);
 		return method;
-	} 
+	}
 
-
-
-	private void addSuperLayerParams(List<Expr> args) {		
+	private void addSuperLayerParams(List<Expr> args) {
 		args.insertChild(new VarAccess(ID.targetParameterName), 0);
 		args.insertChild(new VarAccess(ID.layerProxyParameterName), 1);
-		args.insertChild(new VarAccess(ID.composition), 2);		
+		args.insertChild(new VarAccess(ID.composition), 2);
 	}
 }

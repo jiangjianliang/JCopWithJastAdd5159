@@ -5,7 +5,12 @@ import java.lang.annotation.Inherited;
 import jcop.Globals;
 import jcop.Globals.CompilerOps;
 import AST.Frontend;
-
+/**
+ * Documented by wander,
+ * 
+ * beyond frontend, a compiler consists of frontend and backend
+ * 
+ */
 public class JCopFrontend extends Frontend {
 	
 	@Override

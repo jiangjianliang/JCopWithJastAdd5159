@@ -21,7 +21,12 @@ import AST.TryStmt;
 import AST.VarAccess;
 import AST.VariableDeclaration;
 
-
+/**
+ * Documented by wander,
+ * 
+ * generate constructs for {@link AST.LayerActivation LayerActivation}
+ *
+ */
 public class LayerActivationGenerator extends Generator {
 
 	private LayerActivation activation;
@@ -34,7 +39,19 @@ public class LayerActivationGenerator extends Generator {
 		this.layers = layers;
 		this.activationMethodName = activationMethodName;
 	}
-
+	/**
+	 * generate {@link AST.Block Block},
+	 * {@code
+	 *   activationBlock;
+	 *   try{
+	 *     originalBlock;
+	 *   }
+	 *   finally{
+	 *     deactivationBlock;
+	 *   }
+	 * }
+	 * @return
+	 */
 	public Block generateActivationBlock() {
 		Block activationBlock = generateLayerActivationBlock();
 		TryStmt tryStmt = 
@@ -52,7 +69,14 @@ public class LayerActivationGenerator extends Generator {
 			block.addStmt(generateLayerAssignment(layerAccess));		
 		return block;
 	}
-
+	/**
+	 * generate {@link AST.Stmt Stmt},
+	 * {@code
+	 *   jcop_old_composition_i = xxx
+	 * }
+	 * @param layerAccess
+	 * @return
+	 */
 	private Stmt generateLayerAssignment(Expr layerAccess) {					
 		String varName = generateVarName();
 		Access abstractLayerAccess = 
@@ -81,12 +105,29 @@ public class LayerActivationGenerator extends Generator {
 	private String generateVarName(int pos) {
 		return ID.layerCompositionIdentifierPrefix + (activeLayerCounter - 1 - pos);
 	}
-	
+	/**
+	 * generate {@link AST.Access Access},
+	 * {@code
+	 *   jcop.lang.JCop.current().withLayer(args);
+	 * }
+	 * 
+	 * @param methodname
+	 * @param args
+	 * @return
+	 */
 	private Access getLayerMethodAccess(String methodname, List<Expr> args) {
 		return JCopAccess.get(JCOP).qualifiesAccess(createMethodAccess(ID.current))
 			.qualifiesAccess(	createMethodAccess(methodname, args));
 	}
-	
+	/**
+	 * generate {@link AST.Opt<Block> Opt<Block>},
+	 * {@code
+	 *   jcop.lang.JCop.setComposition(jcop_old_composition_1);
+	 *   ...
+	 * }
+	 * @param args
+	 * @return
+	 */
 	private Opt<Block> getLayerDeActivationMethodAccess(List<Expr> args) {
 		Block block = new Block();
 		for (int i = 0; i < args.getNumChild(); i++) {

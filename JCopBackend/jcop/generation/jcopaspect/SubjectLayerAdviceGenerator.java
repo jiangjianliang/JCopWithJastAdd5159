@@ -4,7 +4,13 @@ import jcop.compiler.CompilerMessageStream;
 import jcop.generation.jcopaspect.internal.SourceCodeBuffer;
 import AST.ParseName;
 
-
+/**
+ * Documented by wander,
+ * 
+ * <pre>
+ *   this class is not used in generation
+ * </pre>
+ */
 public class SubjectLayerAdviceGenerator extends AdviceGenerator {
 
 	public SubjectLayerAdviceGenerator(SourceCodeBuffer advice) {

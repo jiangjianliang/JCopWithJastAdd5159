@@ -10,13 +10,26 @@ import jcop.generation.jcopaspect.internal.SourceCodeBuffer;
 import AST.FieldDeclaration;
 import AST.Program;
 import AST.TypeDecl;
-
+/**
+ * Documented by wander,
+ * 
+ * <pre>
+ * 
+ * </pre>
+ */
 public class PartialFieldAdviceGenerator extends AdviceGenerator {
 	private CompilerMessageStream msg =	CompilerMessageStream.getInstance();
+	
 	public PartialFieldAdviceGenerator(SourceCodeBuffer advice) {
 		super(advice);		
 	}
-
+	
+	/**
+	 * 
+	 * @param field
+	 * @param fqnName
+	 * @param flattenedName
+	 */
 	public void createFieldAccessorAdviceOnce(FieldDeclaration field, String fqnName, String flattenedName) {
 		if (VisitedNodes.firstVisit(field)) {
 			String type = genReturnTypeAsString(field);

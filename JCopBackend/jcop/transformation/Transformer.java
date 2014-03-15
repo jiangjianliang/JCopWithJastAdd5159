@@ -9,33 +9,42 @@ import AST.CompilationUnit;
 import AST.NamedMember;
 import AST.TypeDecl;
 
-
+/**
+ * Documented by wander,
+ * 
+ * abstract class for all Transformers.
+ * 
+ */
 abstract public class Transformer {
-	
+
 	public ASTNode<?> errorCheckAndTransform(CompilationUnit unit) {
 		try {
 			return transform();
-		}
-		catch (JCopException e) {
+		} catch (JCopException e) {
 			System.err.println("Error Transforming " + unit.packageName());
 			throw e;
+		} catch (Exception e) {
+			if (new ErrorChecker(unit).foundErrors())
+				System.exit(0);
+			return null;
 		}
-		catch(Exception e) {
-			if (new ErrorChecker(unit).foundErrors())    			
-    			System.exit(0);
-    		return null;
-		}
-	}	
-		
-	abstract protected ASTNode  transform();
-	
+	}
+
+	abstract protected ASTNode transform();
+
+	/**
+	 * add {@link BodyDecl BodyDecl} to {@link TypeDecl TypeDecl}
+	 * 
+	 * @param member
+	 * @param classDecl
+	 */
 	protected void addBodyDeclTo(NamedMember member, TypeDecl classDecl) {
-		CompilerMessageStream.getInstance().maybeLog("Generate member %s in class %s", member.getID(), classDecl.getFullQualifiedName());
-		classDecl.resetCache();		
-		classDecl.addBodyDecl((BodyDecl)member);		
+		CompilerMessageStream.getInstance().maybeLog(
+				"Generate member %s in class %s", member.getID(),
+				classDecl.getFullQualifiedName());
 		classDecl.resetCache();
-	}	
-	
-	
+		classDecl.addBodyDecl((BodyDecl) member);
+		classDecl.resetCache();
+	}
 
 }

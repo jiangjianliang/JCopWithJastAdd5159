@@ -9,30 +9,42 @@ import AST.LayerActivation;
 import AST.List;
 import AST.Program;
 
+/**
+ * Documented by wander,
+ * 
+ * transform a {@link AST.LayerActivation LayerActivation} into a
+ * {@link AST.Block Block}
+ * 
+ * @see jcop.generation.layeractivation.LayerActivationGenerator
+ * 
+ */
 public class LayerActivationTransformer extends Transformer {
 	private LayerActivation activation;
 	private List<Expr> layers;
 	private LayerActivationGenerator gen;
-	
 
-	public LayerActivationTransformer(LayerActivation activation) {		
+	public LayerActivationTransformer(LayerActivation activation) {
 		this.activation = activation;
 		this.layers = activation.getArgsNoTransform().fullCopy();
-		this.gen =	new LayerActivationGenerator(activation, getMethodName(), layers);
+		this.gen = new LayerActivationGenerator(activation, getMethodName(),
+				layers);
 	}
 
-	protected Block transform() {		
-		Block activationBlock = gen.generateActivationBlock();		
+	protected Block transform() {
+		Block activationBlock = gen.generateActivationBlock();
 		return activationBlock;
 	}
-		
+
+	/**
+	 * generate method name according to {@code activation.getActivation()}
+	 * 
+	 * @return
+	 */
 	private String getMethodName() {
-		final String logging = 
-			Program.hasOption(Globals.CompilerOps.runtimeLogging) 
-			? "WithLogging" 
-			: "";
-		return activation.getActivation() 
-			? ID.addLayer + logging 
-			: ID.removeLayer + logging;
+		final String logging = Program
+				.hasOption(Globals.CompilerOps.runtimeLogging) ? "WithLogging"
+				: "";
+		return activation.getActivation() ? ID.addLayer + logging
+				: ID.removeLayer + logging;
 	}
 }

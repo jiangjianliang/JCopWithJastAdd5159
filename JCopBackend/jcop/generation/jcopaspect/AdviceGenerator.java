@@ -4,7 +4,11 @@
 package jcop.generation.jcopaspect;
 
 import jcop.generation.jcopaspect.internal.SourceCodeBuffer;
-
+/**
+ * Documented by wander,
+ * generate string of advice for JCopAspect.aj
+ *
+ */
 public class AdviceGenerator {
 	protected SourceCodeBuffer advice;
 		

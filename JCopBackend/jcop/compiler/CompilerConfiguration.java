@@ -4,41 +4,55 @@ import jcop.Globals;
 import jcop.Globals.CompilerOps;
 import AST.Program;
 
+/**
+ * Documented by wander
+ * 
+ * global configuration of JCopCompiler
+ * 
+ */
 public class CompilerConfiguration {
 	private static CompilerConfiguration instance;
-	
-	private CompilerConfiguration() { }
-	
+
+	private CompilerConfiguration() {
+	}
+
 	public static CompilerConfiguration getInstance() {
-		if (instance == null) 
+		if (instance == null)
 			instance = new CompilerConfiguration();
 		return instance;
 	}
-	
+
 	public boolean isJCopCompiler() {
 		return Globals.lang.equals("jcop");
-	}		
+	}
 
-	public  boolean astTransformationsDisabled() {
-		return 	generateOutline() || generateGraph();
+	/**
+	 * ast transformation is disabled when the following conditions occur:
+	 * generate outline
+     * generate graph
+	 * 
+	 * @return
+	 */
+	public boolean astTransformationsDisabled() {
+		return generateOutline() || generateGraph();
 	}
 
 	public boolean generateAggGraph() {
-		return Program.hasValueForOption(CompilerOps.agg);	
+		return Program.hasValueForOption(CompilerOps.agg);
 	}
 
 	public boolean generateGrooveGraph() {
-		return Program.hasValueForOption(CompilerOps.groove);	
-	} 
-	
-	public boolean generateGraph() {
-		return generateAggGraph() || generateGrooveGraph();	
+		return Program.hasValueForOption(CompilerOps.groove);
 	}
-	
-	public boolean debugMode() {		
+
+	public boolean generateGraph() {
+		return generateAggGraph() || generateGrooveGraph();
+	}
+
+	public boolean debugMode() {
 		return Program.hasOption(CompilerOps.debug);
 	}
-	
+
 	public boolean generateOutline() {
 		return Program.hasOption(CompilerOps.xmlOutlinePath);
 	}
@@ -54,13 +68,13 @@ public class CompilerConfiguration {
 	public boolean hasSourcePath() {
 		return Program.hasOption(CompilerOps.sourcepath);
 	}
-	
+
 	public boolean generateSources() {
 		return Program.hasOption(CompilerOps.dumpSources);
 	}
 
 	public boolean printUsage() {
-		return Program.hasOption("-version") || Program.hasOption("-help");		
+		return Program.hasOption("-version") || Program.hasOption("-help");
 	}
-	
+
 }

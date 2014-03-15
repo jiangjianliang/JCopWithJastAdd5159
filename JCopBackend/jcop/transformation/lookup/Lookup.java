@@ -13,6 +13,13 @@ import AST.MethodDecl;
 import AST.SimpleSet;
 import AST.TypeDecl;
 
+/**
+ * Documented by wander,
+ * 
+ * helper class for looking up layer related problems, such as base method of
+ * partial method
+ * 
+ */
 public class Lookup {
 
 	private static Hashtable<MethodDecl, MethodDecl> baseMethods;
@@ -21,23 +28,39 @@ public class Lookup {
 		baseMethods = new Hashtable<MethodDecl, MethodDecl>();
 	}
 
-	public static  void setBaseForPartialMethod(MethodDecl originalMethod, MethodDecl partialMethod) {
+	public static void setBaseForPartialMethod(MethodDecl originalMethod,
+			MethodDecl partialMethod) {
 		baseMethods.put(partialMethod, originalMethod);
 		baseMethods.put(originalMethod, originalMethod);
 	}
-	
+
+	/**
+	 * look for corresponding base method for partial method
+	 * 
+	 * @param pmd
+	 * @return
+	 */
 	public static MethodDecl lookupMethodCorrespondingTo(MethodDecl pmd) {
 		try {
-			ClassDecl host = (ClassDecl)pmd.hostType();			
-			return lookupMethodCorrespondingTo(host,  pmd);
-		}
-		catch (Exception e) {
-			System.err.println("Error: cannot lookup method corresponding to " + pmd.getFullQualifiedName());
+			ClassDecl host = (ClassDecl) pmd.hostType();
+			return lookupMethodCorrespondingTo(host, pmd);
+		} catch (Exception e) {
+			System.err.println("Error: cannot lookup method corresponding to "
+					+ pmd.getFullQualifiedName());
 			return pmd;
 		}
 	}
-	
-	private static MethodDecl lookupMethodCorrespondingTo(ClassDecl host, MethodDecl pmd) {		
+
+	/**
+	 * find and store mapping from partial method to base method into
+	 * baseMethods
+	 * 
+	 * @param host
+	 * @param pmd
+	 * @return
+	 */
+	private static MethodDecl lookupMethodCorrespondingTo(ClassDecl host,
+			MethodDecl pmd) {
 		MethodDecl baseMethod = findBaseMethod(host, pmd);
 		/*
 		 * if baseMethod == null, it is a layer local class and null should be
@@ -48,16 +71,24 @@ public class Lookup {
 		return baseMethods.get(pmd);
 	}
 
+	/**
+	 * look for base method of partial method in the host class first, then in
+	 * supper class and so on
+	 * 
+	 * @param host
+	 * @param pmd
+	 * @return
+	 */
 	private static MethodDecl findBaseMethod(ClassDecl host, MethodDecl pmd) {
 		// System.out.println("find base method, host: " + host.getID() +
 		// ", method:" + pmd);
-		;		
-		
+		;
+
 		String signatureOfPartialMethod = pmd.signature();
 		for (BodyDecl bodyDecl : host.getBodyDeclListNoTransform()) {
 			if (bodyDecl instanceof MethodDecl) {
 				String signature = ((MethodDecl) bodyDecl).signature();
-				if (signature.equals(signatureOfPartialMethod)) {					
+				if (signature.equals(signatureOfPartialMethod)) {
 					return (MethodDecl) bodyDecl;
 				}
 			}
@@ -66,37 +97,48 @@ public class Lookup {
 			return lookupMethodCorrespondingTo(host.superclass(), pmd);
 		return null;
 	}
-	
-	
-	
-		
+
+	/**
+	 * look for corresponding {@link AST.ClassDecl ClassDecl} for layerDecl
+	 * 
+	 * @param layerDecl
+	 * @return
+	 */
 	public static ClassDecl lookupLayerClassDecl(LayerDeclaration layerDecl) {
-		if(layerDecl.hostType() == layerDecl)
-			return (LayerDecl)layerDecl.hostType();
-		
+		if (layerDecl.hostType() == layerDecl)
+			return (LayerDecl) layerDecl.hostType();
+
 		SimpleSet s = layerDecl.hostType().lookupType(layerDecl.getID());
 		if (s.isEmpty())
-			throw new RuntimeException(Msg.LayerDeclarationNotFound + layerDecl.getID());
-		return (ClassDecl)s.iterator().next();
-		
-		
-//		//layer.topLevelType().lookupType(name)		
-//		ClassDecl classDecl = null ;	
-//		List<ImportDecl> list = getImportsOfHostType(layerDecl);		
-//		classDecl = findClassDeclInImports(list, layerDecl);		
-//		return classDecl;
+			throw new RuntimeException(Msg.LayerDeclarationNotFound
+					+ layerDecl.getID());
+		return (ClassDecl) s.iterator().next();
+
+		// //layer.topLevelType().lookupType(name)
+		// ClassDecl classDecl = null ;
+		// List<ImportDecl> list = getImportsOfHostType(layerDecl);
+		// classDecl = findClassDeclInImports(list, layerDecl);
+		// return classDecl;
 	}
-	
-	private static ClassDecl findClassDeclInImports(List<ImportDecl> list, LayerDeclaration decl) {
-		for(ImportDecl imp : list) {
+
+	/**
+	 * FIXME waiting
+	 * @param list
+	 * @param decl
+	 * @return
+	 */
+	private static ClassDecl findClassDeclInImports(List<ImportDecl> list,
+			LayerDeclaration decl) {
+		for (ImportDecl imp : list) {
 			TypeDecl importDecl = imp.getAccess().type();
-			if (importDecl.name().equals(decl.getID())) 
-				return  (ClassDecl)importDecl;					
-		}	 
+			if (importDecl.name().equals(decl.getID()))
+				return (ClassDecl) importDecl;
+		}
 		throw new RuntimeException(Msg.LayerDeclarationNotFound + decl.getID());
 	}
 
-	private static List<ImportDecl> getImportsOfHostType(LayerDeclaration decl) {	
-		return decl.hostType().topLevelType().compilationUnit().getImportDeclList();
+	private static List<ImportDecl> getImportsOfHostType(LayerDeclaration decl) {
+		return decl.hostType().topLevelType().compilationUnit()
+				.getImportDeclList();
 	}
 }
