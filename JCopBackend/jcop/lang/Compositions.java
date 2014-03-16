@@ -1,4 +1,12 @@
 package jcop.lang;
+/**
+ * Documented by wander
+ * 
+ * <pre>
+ * composition for layers and contextclass
+ * </pre>
+ *
+ */
 public class Compositions {
 		
 		
@@ -30,7 +38,11 @@ public class Compositions {
 		ContextComposition getContextComposition() {
 			return ctx;
 		}
-		
+		/**
+		 * return (global) context composition, note that global is before context
+		 * @param global
+		 * @return
+		 */
 		ContextComposition getCashedContextComposition(Compositions global) {			
 			if (contextCompositionChanged() || global.contextCompositionChanged()) {				
 				cachedComposition = global.getContextComposition().merge(getContextComposition());
@@ -40,7 +52,7 @@ public class Compositions {
 			
 		}
 		
-				
+		
 		public boolean contextCompositionChanged() {			
 			boolean changed =  currentContextCompositionHash != getContextComposition().hashCode() ;
 			if (changed)

@@ -1,5 +1,5 @@
 package jcop.lang;
- 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,29 +12,33 @@ import java.util.logging.Logger;
 public class Composition implements Cloneable {
 
 	public ArrayList<LayerProxy> tmpActualLayers;
-	
+
 	public LayerToProxyMap layerToProxyMap;
 	// not sure if i need this list
 	// public ArrayList<Layer> deactivatedLayers;
 	public String deactivated = "";
-	//public ContextComposition contexts;
 
-	// reflective API
+	// public ContextComposition contexts;
 
-	public static List<Layer> getPartialMethodProvidersFor(String signature) {
-		List<Layer> layers = new ArrayList<Layer>();
-		for (Layer l : Layer.getLayers()) {
-			if (l.providesPartialMethod(signature))
-				layers.add(l);
-		}
-		return layers;
+	protected Composition() {
+		super();
+		// activatedLayers = new ArrayList<LayerProxy>();
+		layerToProxyMap = new LayerToProxyMap();
+		// deactivatedLayers = new ArrayList<Layer>();
+		// contexts = new ContextComposition(this);
 	}
 
+	/**
+	 * add {@code <layerList>} to current composition.
+	 * 
+	 * @param layerList
+	 * @return
+	 */
 	public Composition withLayer(Collection<Layer> layerList) {
 		return this.withLayer(layerList.toArray(new Layer[0]));
 	}
-	
-	public Composition withLayer(Layer... layerList) {		
+
+	public Composition withLayer(Layer... layerList) {
 		Composition old = this.clone();
 		addLayer(layerList);
 		return old;
@@ -44,31 +48,17 @@ public class Composition implements Cloneable {
 		return JCop.current();
 	}
 
-	// public static List<Layer> getImplicitlyActivatedLayers(Object target) {
-	// return getImplicitlyActivatedLayers(target,
-	// Arrays.asList(Layer.getLayers()));
-	// }
-
-	public static List<Layer> getImplicitlyActivatedLayers(String signature,
-			Object target) {
-		return getImplicitlyActivatedLayers(target,
-				getPartialMethodProvidersFor(signature));
-	}
-
 	private boolean invalidated = true;
 
 	protected void invalidate() {
 		invalidated = true;
 	}
 
-	protected Composition() {
-		super();		
-		//activatedLayers = new ArrayList<LayerProxy>();
-		layerToProxyMap = new  LayerToProxyMap();
-		// deactivatedLayers = new ArrayList<Layer>();
-		//contexts = new ContextComposition(this);
-	}
-
+	/**
+	 * add list of {@link Layer} to current composition
+	 * 
+	 * @param layerList
+	 */
 	public void addLayer(Layer... layerList) {
 		for (Layer _layer : layerList) {
 			if (_layer != null) {
@@ -80,7 +70,7 @@ public class Composition implements Cloneable {
 				layerToProxyMap.addLayer(_layer);
 				// System.out.println("before: " +activatedLayers);
 				Composition c = _layer.onWith(this);
-				
+
 				this.layerToProxyMap = c.layerToProxyMap;
 				// System.out.println("after: " +activatedLayers);
 				invalidateComposition();
@@ -88,6 +78,14 @@ public class Composition implements Cloneable {
 		}
 	}
 
+	/**
+	 * add {@link Collection} of {@link Layer} to current composition and log
+	 * this with name {@code <loggerName>}
+	 * 
+	 * @param loggerName
+	 * @param layerList
+	 * @return old composition before adding
+	 */
 	public Composition addLayerWithLogging(String loggerName,
 			Collection<Layer> layerList) {
 		Composition old = this.withLayer(layerList);
@@ -100,6 +98,14 @@ public class Composition implements Cloneable {
 		return old;
 	}
 
+	/**
+	 * add list of {@link Layer} to current composition and log this with name
+	 * {@code <loggerName>}
+	 * 
+	 * @param loggerName
+	 * @param layerList
+	 * @return old composition before adding
+	 */
 	public Composition addLayerWithLogging(String loggerName,
 			Layer... layerList) {
 		Composition old = this.withLayer(layerList);
@@ -112,23 +118,59 @@ public class Composition implements Cloneable {
 		return old;
 	}
 
+	/**
+	 * remove {@code <toBeRemoved>} of {@link Layer} from current composition
+	 * 
+	 * @param toBeRemoved
+	 * @return old composition before removing
+	 */
+	public Composition removeLayer(Layer toBeRemoved) {
+		Composition old = this.clone();
+		boolean removed = this.layerToProxyMap.removeLayer(toBeRemoved);
+		// while (removed)
+		// removed = this.activatedLayers.remove(toBeRemoved);
+		// this.deactivatedLayers.remove(_layer);
+		// this.deactivatedLayers.add(0, _layer);
+		// this.deactivated += _layer.toString();
+		return old;
+	}
+
+	/**
+	 * remove {@code <toBeRemoved>} of {@link Layer} from current composition
+	 * and log this with name {@code <loggerName>}
+	 * 
+	 * @param loggerName
+	 * @param _layer
+	 * @return old composition before removing
+	 */
+	public Composition removeLayerWithLogging(String loggerName, Layer _layer) {
+		Composition old = this.removeLayer(_layer);
+		LayerLogger.logLayerDeactivation(loggerName,
+				new java.lang.String[] { _layer.toString() });
+		return old;
+	}
+
+	/**
+	 * get first layer in current composition. default value is BaseLayer
+	 * 
+	 * @return
+	 */
 	public LayerProxy firstLayer() {
-		return ((LayerProxy)getTmpLayerComposition().get(0));
+		return ((LayerProxy) getTmpLayerComposition().get(0));
 	}
 
 	public Layer[] getLayer() {
 		return getTmpLayerComposition().toArray(new Layer[0]);
 	}
 
-//	public ContextComposition getContexts() {
-//		return contexts;
-//	}
-	
-	
-//
-//	public void setContexts(ContextComposition comp) {
-//		contexts = comp;
-//	}
+	// public ContextComposition getContexts() {
+	// return contexts;
+	// }
+
+	//
+	// public void setContexts(ContextComposition comp) {
+	// contexts = comp;
+	// }
 
 	public void setActiveFor(Object o) {
 		for (Layer l : getLayer())
@@ -139,28 +181,16 @@ public class Composition implements Cloneable {
 		for (Layer l : getLayer())
 			l.setInactiveFor(o);
 	}
-	
-	public Composition removeLayer(Layer toBeRemoved) {
-		Composition old = this.clone();
-		boolean removed = this.layerToProxyMap.removeLayer(toBeRemoved);
-//		while (removed)
-//			removed = this.activatedLayers.remove(toBeRemoved);
-		// this.deactivatedLayers.remove(_layer);
-		// this.deactivatedLayers.add(0, _layer);
-		// this.deactivated += _layer.toString();
-		return old;
-	}
 
-	public Composition removeLayerWithLogging(String loggerName, Layer _layer) {
-		Composition old = this.removeLayer(_layer);
-		LayerLogger.logLayerDeactivation(loggerName,
-				new java.lang.String[] { _layer.toString() });
-		return old;
-	}
-
+	/**
+	 * get next {@link LayerProxy} of {@code <current>}
+	 * 
+	 * @param current
+	 * @return
+	 */
 	public LayerProxy next(LayerProxy current) {
 		ArrayList<LayerProxy> composition = getTmpLayerComposition();
-		
+
 		for (int i = 0; i < composition.size(); i++) {
 			LayerProxy _layer = composition.get(i);
 			if (current.equals(_layer))
@@ -187,15 +217,33 @@ public class Composition implements Cloneable {
 	protected Composition clone() {
 		Composition clone = new Composition();
 		if (this.tmpActualLayers != null) {
-			clone.tmpActualLayers = (ArrayList<LayerProxy>) tmpActualLayers.clone();
+			clone.tmpActualLayers = (ArrayList<LayerProxy>) tmpActualLayers
+					.clone();
 		}
 		clone.deactivated = this.deactivated;
-		clone.layerToProxyMap =  (LayerToProxyMap)layerToProxyMap.clone();
+		clone.layerToProxyMap = (LayerToProxyMap) layerToProxyMap.clone();
 		// clone.deactivatedLayers.addAll(this.deactivatedLayers);
 		// clone.activatedContextLayers.addAll(this.activatedContextLayers);
-		//clone.contexts = this.contexts;
+		// clone.contexts = this.contexts;
 		// clone.parent_id = this.id;
 		return clone;
+	}
+
+	// public static List<Layer> getImplicitlyActivatedLayers(Object target) {
+	// return getImplicitlyActivatedLayers(target,
+	// Arrays.asList(Layer.getLayers()));
+	// }
+	/**
+	 * FIXME what this used for
+	 * 
+	 * @param signature
+	 * @param target
+	 * @return
+	 */
+	public static List<Layer> getImplicitlyActivatedLayers(String signature,
+			Object target) {
+		return getImplicitlyActivatedLayers(target,
+				getPartialMethodProvidersFor(signature));
 	}
 
 	public static List<Layer> getImplicitlyActivatedLayers(Object target,
@@ -211,21 +259,47 @@ public class Composition implements Cloneable {
 		return layers;
 	}
 
+	// reflective API
+
+	public static List<Layer> getPartialMethodProvidersFor(String signature) {
+		List<Layer> layers = new ArrayList<Layer>();
+		for (Layer l : Layer.getLayers()) {
+			if (l.providesPartialMethod(signature))
+				layers.add(l);
+		}
+		return layers;
+	}
+
 	public void invalidateComposition() {
 		tmpActualLayers = null;
 	}
 
+	/**
+	 * get temporary layer composition
+	 * 
+	 * @return
+	 */
 	public ArrayList<LayerProxy> getTmpLayerComposition() {
 		// if (tmpActualLayers == null)
 		tmpActualLayers = buildTmpLayerComposition();
 		return tmpActualLayers;
 	}
- 
+
+	/**
+	 * build temporary layer composition.
+	 * <ul>
+	 * <li>static active layers</li>
+	 * <li>current active layers</li>
+	 * <li>BaseLayer</li>
+	 * </ul>
+	 * 
+	 * @return
+	 */
 	public ArrayList<LayerProxy> buildTmpLayerComposition() {
 		ArrayList<LayerProxy> tmpList = new ArrayList<LayerProxy>();
 		tmpList.addAll(Arrays.asList(Layer.getStaticActiveLayers()));
 		tmpList.addAll(this.getDirectActivatedLayers());
-		//tmpList.addAll(this.getContextActivatedLayers());
+		// tmpList.addAll(this.getContextActivatedLayers());
 		tmpList.add(new LayerProxy(BaseLayer.getInstance()));
 		return (ArrayList<LayerProxy>) tmpList;
 	}
@@ -234,13 +308,13 @@ public class Composition implements Cloneable {
 		return new ArrayList<LayerProxy>(this.layerToProxyMap.getLayers());
 	}
 
-//	public List<LayerProxy> getContextActivatedLayers() {
-//		ArrayList<LayerProxy> resultList = new ArrayList<LayerProxy>();
-//		//resultList.addAll(contexts.getActivatedLayers());
-//		resultList.removeAll(this.activatedLayers);
-//		// resultList.removeAll(this.deactivatedLayers);
-//		return resultList;
-//	}
+	// public List<LayerProxy> getContextActivatedLayers() {
+	// ArrayList<LayerProxy> resultList = new ArrayList<LayerProxy>();
+	// //resultList.addAll(contexts.getActivatedLayers());
+	// resultList.removeAll(this.activatedLayers);
+	// // resultList.removeAll(this.deactivatedLayers);
+	// return resultList;
+	// }
 
 	static class LayerLogger {
 
@@ -290,28 +364,61 @@ public class Composition implements Cloneable {
 
 	public boolean contains(Layer l) {
 		return getTmpLayerComposition().contains(l);
-		
-	}
-	
-	class LayerToProxyMap  {
-		private ArrayList<LayerProxy> activatedLayers;
-		private LinkedHashtable<Layer,LayerProxy> activatedProxies;
 
-		private LayerToProxyMap(ArrayList<LayerProxy> activatedLayers, LinkedHashtable<Layer,LayerProxy> activatedProxies) {
-			this.activatedLayers = activatedLayers;
-			this.activatedProxies = activatedProxies;
-		}
-		
-		
-		LayerToProxyMap() {
+	}
+
+	/**
+	 * contain two mappings from {@link Layer} to {@link LayerProxy}
+	 * 
+	 * @author wander
+	 * 
+	 */
+	class LayerToProxyMap {
+
+		private ArrayList<LayerProxy> activatedLayers;
+
+		private LinkedHashtable<Layer, LayerProxy> activatedProxies;
+
+		private LayerToProxyMap() {
 			activatedLayers = new ArrayList<LayerProxy>();
 			activatedProxies = new LinkedHashtable<Layer, LayerProxy>();
 		}
-		
+
+		private LayerToProxyMap(ArrayList<LayerProxy> activatedLayers,
+				LinkedHashtable<Layer, LayerProxy> activatedProxies) {
+			this.activatedLayers = activatedLayers;
+			this.activatedProxies = activatedProxies;
+		}
+
+		/**
+		 * return current list of active {@link Layer}({@link LayerProxy},
+		 * actually)
+		 * 
+		 * @return
+		 */
 		public Collection<? extends LayerProxy> getLayers() {
 			return activatedLayers;
 		}
 
+		/**
+		 * add {@code <toBeAdded>} of {@link Layer} to {@code <activatedLayers>}
+		 * and {@code <activatedProxies>}
+		 * 
+		 * @param toBeAdded
+		 */
+		public void addLayer(Layer toBeAdded) {
+			LayerProxy proxy = new LayerProxy(toBeAdded);
+			activatedLayers.add(0, proxy);
+			activatedProxies.appendValue(toBeAdded, proxy);
+		}
+
+		/**
+		 * remove {@code <toBeRemove>} of {@link Layer} to
+		 * {@code <activatedLayers>} and {@code <activatedProxies>}
+		 * 
+		 * @param toBeRemoved
+		 * @return
+		 */
 		public boolean removeLayer(Layer toBeRemoved) {
 			for (LayerProxy proxy : activatedProxies.get(toBeRemoved))
 				activatedLayers.remove(proxy);
@@ -319,21 +426,14 @@ public class Composition implements Cloneable {
 			return true;
 		}
 
-		void addLayer(Layer toBeAdded) {
-			LayerProxy proxy = new LayerProxy(toBeAdded);
-			activatedLayers.add(0, proxy);
-			activatedProxies.appendValue(toBeAdded, proxy);
-		}
-		
 		@Override
-		public LayerToProxyMap clone() {			
+		public LayerToProxyMap clone() {
 			return new LayerToProxyMap(
-					(ArrayList<LayerProxy>)activatedLayers.clone(), 
-					(LinkedHashtable<Layer,LayerProxy>) activatedProxies.clone());			
+					(ArrayList<LayerProxy>) activatedLayers.clone(),
+					(LinkedHashtable<Layer, LayerProxy>) activatedProxies
+							.clone());
 		}
-		
 
 	}
-
 
 }

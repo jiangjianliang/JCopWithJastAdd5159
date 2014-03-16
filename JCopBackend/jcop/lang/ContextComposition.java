@@ -54,12 +54,19 @@ public class ContextComposition {
 	// updateActiveContexts(signatures);
 	// return old;
 	// }
+	/**
+	 * called in JCopAspect.aj
+	 * 
+	 * @param ctx
+	 * @param signatures
+	 * @return
+	 */
 	public LinkedList<Layer> notifyExecution(Class ctx, String... signatures) {
 		LinkedList<Layer> toBeActivated = new LinkedList<Layer>();
 		updateActiveContexts(toBeActivated, ctx, signatures);
 		return toBeActivated;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return activeContexts.hashCode();
@@ -100,13 +107,22 @@ public class ContextComposition {
 	 * 
 	 * @param ctx
 	 */
-	public void updateActiveContexts(LinkedList<Layer> toBeActivated, Class ctx, String... signatures) {
-		ContextList ctxInstances = sortetActiveContexts	.getUnevaluated(ctx);
+	public void updateActiveContexts(LinkedList<Layer> toBeActivated,
+			Class ctx, String... signatures) {
+		ContextList ctxInstances = sortetActiveContexts.getUnevaluated(ctx);
 		for (InternalContext ctxInstance : ctxInstances)
 			collectLayersFromContext(toBeActivated, ctxInstance, signatures);
 
 	}
 
+	/**
+	 * collect all the layers from context {@code <ctxInstance>} that is active
+	 * for {@code <signatures>}
+	 * 
+	 * @param toBeActivated
+	 * @param ctxInstance
+	 * @param signatures
+	 */
 	public void collectLayersFromContext(LinkedList<Layer> toBeActivated,
 			InternalContext ctxInstance, String[] signatures) {
 		for (String signature : signatures) {
@@ -158,7 +174,14 @@ public class ContextComposition {
 	// activatedLayers.addAll(activeContextLayers);
 	// deactivatedLayers.addAll(ctx.getDeactivatedLayers());
 	// }
-
+	/**
+	 * FIXME wander: when to use
+	 * 
+	 * @param currentContext
+	 * @param activatedLayers
+	 * @param deactivatedLayers
+	 * @return
+	 */
 	public List<Layer> createFilteredLayerList(InternalContext currentContext,
 			List<Layer> activatedLayers, Set<Layer> deactivatedLayers) {
 		List<Layer> activeContextLayers = new ArrayList<Layer>(
@@ -200,21 +223,28 @@ public class ContextComposition {
 	@Override
 	public ContextComposition clone() {
 		ContextComposition clone = new ContextComposition();
-		clone.activeContexts = (ContextList)this.activeContexts.clone();
-		clone.sortetActiveContexts = (ContextClassInstanceList) this.sortetActiveContexts.clone();		
+		clone.activeContexts = (ContextList) this.activeContexts.clone();
+		clone.sortetActiveContexts = (ContextClassInstanceList) this.sortetActiveContexts
+				.clone();
 		return clone;
 	}
-	
+
+	/**
+	 * check whether {@code <activeContexts>} is empty
+	 * 
+	 * @return
+	 */
 	public boolean isEmpty() {
 		return activeContexts.isEmpty();
 	}
 
 	@SuppressWarnings("serial")
 	class ContextList extends LinkedList<InternalContext> {
-		
+
 		public ContextList() {
 			super();
 		}
+
 		@Override
 		public boolean add(InternalContext e) {
 			remove(e);
@@ -225,20 +255,32 @@ public class ContextComposition {
 	}
 
 	@SuppressWarnings("serial")
-	class ContextClassInstanceList extends	LinkedHashtable<Class, InternalContext> {
+	class ContextClassInstanceList extends
+			LinkedHashtable<Class, InternalContext> {
 		private ContextList evaluatedContexts;
 
 		public ContextClassInstanceList() {
 			evaluatedContexts = new ContextList();
 		}
-		
-		public synchronized java.util.LinkedList<InternalContext> addValueAt(Class key, InternalContext toBeAdded, int pos) {
+
+		/**
+		 * add ({@code <key>},{@code <toBeAdded>}) at position {@code <pos>}
+		 */
+		public synchronized java.util.LinkedList<InternalContext> addValueAt(
+				Class key, InternalContext toBeAdded, int pos) {
 			java.util.LinkedList<InternalContext> list = get(key);
 			if (!list.contains(toBeAdded))
 				return super.addValueAt(key, toBeAdded, pos);
 			return list;
 		}
- 
+
+		/**
+		 * get list of {@link InternalContext} that have not evaluated FIXME
+		 * wander: at last there's no internalcontexts that are unevaluated ?
+		 * 
+		 * @param ctx
+		 * @return
+		 */
 		public ContextList getUnevaluated(Class ctx) {
 			ContextList unevaluatedContexts = new ContextList();
 			for (InternalContext context : super.get(ctx)) {
@@ -256,31 +298,49 @@ public class ContextComposition {
 			evaluatedContexts.add(evaluated);
 		}
 
-		public synchronized LinkedList<InternalContext> remove(	InternalContext value) {
+		public synchronized LinkedList<InternalContext> remove(
+				InternalContext value) {
 			return super.remove(value.getClass(), value);
 		}
 
+		/**
+		 * check whether this has an entry of (value.class, [value, ... ])
+		 * 
+		 * @param value
+		 * @return
+		 */
 		public boolean containsContext(InternalContext value) {
 			return get(value.getClass()).contains(value);
 		}
 
 		@Override
 		public synchronized Object clone() {
-			ContextClassInstanceList clone = (ContextClassInstanceList) super	.clone();
+			ContextClassInstanceList clone = (ContextClassInstanceList) super
+					.clone();
 			clone.evaluatedContexts = (ContextList) evaluatedContexts.clone();
 			return clone;
 		}
 	}
 
+	/**
+	 * clone and merge {@code <toBeMerged>} into {@link ContextComposition}
+	 * clone is used for not polluting {@link JCop#currentContexts()}
+	 * 
+	 * @param toBeMerged
+	 * @return
+	 */
 	public ContextComposition merge(ContextComposition toBeMerged) {
-		ContextComposition clone = clone(); 
-		clone.activeContexts.addAll((ContextList)toBeMerged.activeContexts.clone());
-		clone.sortetActiveContexts.merge((ContextClassInstanceList)toBeMerged.sortetActiveContexts.clone());
+		ContextComposition clone = clone();
+		clone.activeContexts.addAll((ContextList) toBeMerged.activeContexts
+				.clone());
+		clone.sortetActiveContexts
+				.merge((ContextClassInstanceList) toBeMerged.sortetActiveContexts
+						.clone());
 		return clone;
 	}
 
-	public int getSize() {		
-		return activeContexts.size();		
+	public int getSize() {
+		return activeContexts.size();
 	}
 
 }
