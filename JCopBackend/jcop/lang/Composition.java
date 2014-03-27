@@ -5,13 +5,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class Composition implements Cloneable {
-
-	public ArrayList<LayerProxy> tmpActualLayers;
+	// WANDER LinkedList
+	// public ArrayList<LayerProxy> tmpActualLayers;
+	public LinkedList<LayerProxy> tmpActualLayers;
 
 	public LayerToProxyMap layerToProxyMap;
 	// not sure if i need this list
@@ -38,6 +40,12 @@ public class Composition implements Cloneable {
 		return this.withLayer(layerList.toArray(new Layer[0]));
 	}
 
+	/**
+	 * add list of {@link Layer} to current composition.
+	 * 
+	 * @param layerList
+	 * @return
+	 */
 	public Composition withLayer(Layer... layerList) {
 		Composition old = this.clone();
 		addLayer(layerList);
@@ -70,7 +78,6 @@ public class Composition implements Cloneable {
 				layerToProxyMap.addLayer(_layer);
 				// System.out.println("before: " +activatedLayers);
 				Composition c = _layer.onWith(this);
-
 				this.layerToProxyMap = c.layerToProxyMap;
 				// System.out.println("after: " +activatedLayers);
 				invalidateComposition();
@@ -156,7 +163,9 @@ public class Composition implements Cloneable {
 	 * @return
 	 */
 	public LayerProxy firstLayer() {
-		return ((LayerProxy) getTmpLayerComposition().get(0));
+		// WANDER
+		// return ((LayerProxy) getTmpLayerComposition().get(0));
+		return ((LayerProxy) getTmpLayerComposition().getFirst());
 	}
 
 	public Layer[] getLayer() {
@@ -189,14 +198,28 @@ public class Composition implements Cloneable {
 	 * @return
 	 */
 	public LayerProxy next(LayerProxy current) {
-		ArrayList<LayerProxy> composition = getTmpLayerComposition();
+		/*
+		 * WANDER ArrayList<LayerProxy> composition = getTmpLayerComposition();
+		 * for (int i = 0; i < composition.size(); i++) { LayerProxy _layer =
+		 * composition.get(i); if (current.equals(_layer)) return
+		 * composition.get(i + 1); } return composition.get(0);
+		 */
 
-		for (int i = 0; i < composition.size(); i++) {
-			LayerProxy _layer = composition.get(i);
+		LinkedList<LayerProxy> composition = getTmpLayerComposition();
+
+		// NOTE: when IndexOutOfBoundsException occurs, current should be
+		// BaseLayer(LayerProxy)
+		//FIXME wander: when composition changes, something unpredictable occurs
+		//at some point, current-LayerProxy is deleted from global xxx, which means that current is not in current composition
+		//we actually want to get next of current-LayerProxy which is also in the current composition
+		//iterator is not safe?
+		Iterator<LayerProxy> itr = composition.iterator();
+		while (itr.hasNext()) {
+			LayerProxy _layer = itr.next();
 			if (current.equals(_layer))
-				return composition.get(i + 1);
+				return itr.next();
 		}
-		return composition.get(0);
+		return composition.getFirst();
 	}
 
 	@Override()
@@ -217,7 +240,10 @@ public class Composition implements Cloneable {
 	protected Composition clone() {
 		Composition clone = new Composition();
 		if (this.tmpActualLayers != null) {
-			clone.tmpActualLayers = (ArrayList<LayerProxy>) tmpActualLayers
+			// WANDER
+			// clone.tmpActualLayers = (ArrayList<LayerProxy>)
+			// tmpActualLayers.clone();
+			clone.tmpActualLayers = (LinkedList<LayerProxy>) tmpActualLayers
 					.clone();
 		}
 		clone.deactivated = this.deactivated;
@@ -275,11 +301,11 @@ public class Composition implements Cloneable {
 	}
 
 	/**
-	 * get temporary layer composition
+	 * get temporary layer composition WANDER change return value of this method
 	 * 
 	 * @return
 	 */
-	public ArrayList<LayerProxy> getTmpLayerComposition() {
+	public LinkedList<LayerProxy> getTmpLayerComposition() {
 		// if (tmpActualLayers == null)
 		tmpActualLayers = buildTmpLayerComposition();
 		return tmpActualLayers;
@@ -292,18 +318,31 @@ public class Composition implements Cloneable {
 	 * <li>current active layers</li>
 	 * <li>BaseLayer</li>
 	 * </ul>
+	 * WANDER change return value of this method
 	 * 
 	 * @return
 	 */
-	public ArrayList<LayerProxy> buildTmpLayerComposition() {
-		ArrayList<LayerProxy> tmpList = new ArrayList<LayerProxy>();
+	public LinkedList<LayerProxy> buildTmpLayerComposition() {
+		/*
+		 * WANDER ArrayList<LayerProxy> tmpList = new ArrayList<LayerProxy>();
+		 * tmpList.addAll(Arrays.asList(Layer.getStaticActiveLayers()));
+		 * tmpList.addAll(this.getDirectActivatedLayers());
+		 * //tmpList.addAll(this.getContextActivatedLayers()); tmpList.add(new
+		 * LayerProxy(BaseLayer.getInstance())); return (ArrayList<LayerProxy>)
+		 * tmpList;
+		 */
+		LinkedList<LayerProxy> tmpList = new LinkedList<LayerProxy>();
 		tmpList.addAll(Arrays.asList(Layer.getStaticActiveLayers()));
 		tmpList.addAll(this.getDirectActivatedLayers());
-		// tmpList.addAll(this.getContextActivatedLayers());
 		tmpList.add(new LayerProxy(BaseLayer.getInstance()));
-		return (ArrayList<LayerProxy>) tmpList;
+		return (LinkedList<LayerProxy>) tmpList;
 	}
 
+	/**
+	 * WANDER change return value of this method
+	 * 
+	 * @return
+	 */
 	public List<LayerProxy> getDirectActivatedLayers() {
 		return new ArrayList<LayerProxy>(this.layerToProxyMap.getLayers());
 	}
@@ -374,17 +413,23 @@ public class Composition implements Cloneable {
 	 * 
 	 */
 	class LayerToProxyMap {
-
-		private ArrayList<LayerProxy> activatedLayers;
+		// WANDER
+		// private ArrayList<LayerProxy> activatedLayers;
+		private LinkedList<LayerProxy> activatedLayers;
 
 		private LinkedHashtable<Layer, LayerProxy> activatedProxies;
 
 		private LayerToProxyMap() {
-			activatedLayers = new ArrayList<LayerProxy>();
+			// WANDER
+			// activatedLayers = new ArrayList<LayerProxy>();
+			activatedLayers = new LinkedList<LayerProxy>();
 			activatedProxies = new LinkedHashtable<Layer, LayerProxy>();
 		}
 
-		private LayerToProxyMap(ArrayList<LayerProxy> activatedLayers,
+		/**
+		 * WANDER change parameter type of {@code <activatedLayers>}
+		 */
+		private LayerToProxyMap(LinkedList<LayerProxy> activatedLayers,
 				LinkedHashtable<Layer, LayerProxy> activatedProxies) {
 			this.activatedLayers = activatedLayers;
 			this.activatedProxies = activatedProxies;
@@ -428,10 +473,25 @@ public class Composition implements Cloneable {
 
 		@Override
 		public LayerToProxyMap clone() {
+			// WANDER
+			// return new LayerToProxyMap(
+			// (ArrayList<LayerProxy>) activatedLayers.clone(),
+			// (LinkedHashtable<Layer, LayerProxy>) activatedProxies
+			// .clone());
 			return new LayerToProxyMap(
-					(ArrayList<LayerProxy>) activatedLayers.clone(),
+					(LinkedList<LayerProxy>) activatedLayers.clone(),
 					(LinkedHashtable<Layer, LayerProxy>) activatedProxies
 							.clone());
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder strBuilder = new StringBuilder();
+			for( LayerProxy proxy : activatedLayers){
+				strBuilder.append(proxy.getName());
+				strBuilder.append(";");
+			}
+			return strBuilder.toString();
 		}
 
 	}

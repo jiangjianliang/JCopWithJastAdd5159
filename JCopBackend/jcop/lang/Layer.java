@@ -178,7 +178,10 @@ public class Layer {
 	}
 
 	private ArrayList<Layer> weakExcludes = new ArrayList<Layer>();
-
+	/**
+	 * @deprecated
+	 * @param c
+	 */
 	public void weakExcludes(Layer c) {
 		// System.out.println(name + ": add exclude" + c);
 		weakExcludes.add(c);
