@@ -8,8 +8,11 @@ import jcop.lang.InternalContext;
 import AST.ContextDecl;
 
 /**
- * Documented by wander, generate static context activation advice
+ * Documented by wander,
  * 
+ * <pre>
+ * generate static context activation advice
+ * </pre>
  */
 class StaticContextObjectAdviceGenerator extends AdviceGenerator {
 	private ContextDecl decl;
@@ -20,6 +23,23 @@ class StaticContextObjectAdviceGenerator extends AdviceGenerator {
 		this.decl = decl;
 	}
 
+	/**
+	 * generate staticactive context activation
+	 * 
+	 * FIXME wander: wait for future comment
+	 * 
+	 * <pre>
+	 * <code>
+	 *   //static context activation for $context$
+	 * after(jcop.lang.ContextComposition comp) returning: 
+	 * execution(jcop.lang.ContextComposition.new(..)) && 
+	 * this(comp){
+	 * comp.activate($context$.getSingleton())
+	 * }
+	 * </code>
+	 * where $context$ is replaced by {@link ContextDecl#getFullQualifiedName()}
+	 * </pre>
+	 */
 	public void genContextActivation() {
 		SourceCodeBuffer advice = getAdvice();
 		advice.putLine("// static context activation for $context$");

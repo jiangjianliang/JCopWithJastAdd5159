@@ -5,7 +5,14 @@ import AST.Block;
 import AST.List;
 import AST.Modifiers;
 import AST.ParameterDeclaration;
-
+/**
+ * Documented by wander
+ * 
+ * <pre>
+ * XXX wander: when to use
+ * </pre>
+ *
+ */
 public class Introduction extends AspectMember {
 
 	private Modifiers modifiers;

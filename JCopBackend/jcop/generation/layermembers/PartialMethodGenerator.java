@@ -39,10 +39,11 @@ import AST.VarAccess;
 import AST.VariableDeclaration;
 
 /**
- * Documented by wander,
+ * Documented by wander
  * 
+ * <pre>
  * generate constructs for partial method of {@link AST.MethodDecl MethodDecl}
- * 
+ * </pre>
  * 
  */
 public class PartialMethodGenerator extends LayeredMethodGenerator {
@@ -80,8 +81,6 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 						.fullCopy(), genPartialMethodBlock());
 
 	}
-
-	
 
 	/**
 	 * generate proceed Stmt
@@ -146,7 +145,7 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 				JCopAccess.get(COMPOSITION), ID.composition), 2);
 		return params;
 	}
-	
+
 	/**
 	 * generate {@code Block} for before/after semantics
 	 * 
@@ -174,16 +173,17 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 	private boolean containsAfterModifier(Modifiers m) {
 		return m.contains(AFTER) || m.contains(AFTER_ANNOT);
 	}
-	
+
 	/**
 	 * check modifier contains 'before'
+	 * 
 	 * @param m
 	 * @return
 	 */
 	private boolean containsBeforeModifier(Modifiers m) {
 		return m.contains(BEFORE) || m.contains(BEFORE_ANNOT);
 	}
-	
+
 	/**
 	 * generate {@link Block} for before partial method
 	 * 
@@ -239,11 +239,10 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 			stmts.insertChild(genProceedExprStmt(), 0);
 		return block;
 	}
-	
-	
+
 	/**
-	 * generate {@link Stmt}
-	 * FIXME wander: when to use
+	 * generate {@link Stmt} FIXME wander: when to use
+	 * 
 	 * @return
 	 */
 	public Stmt genPartialMethodMetaClassInstantiation() {
@@ -255,9 +254,10 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 								new StringLiteral(genFullSignature(baseMethod)),
 								metaClass)));
 	}
-	
+
 	/**
 	 * generate decl's full signature
+	 * 
 	 * @param decl
 	 * @return
 	 */
@@ -268,9 +268,10 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 		sig.append(decl.getFullQualifiedName());
 		return sig.toString();
 	}
-	
+
 	/**
 	 * generate {@link ClassInstanceExpr}
+	 * 
 	 * @return
 	 */
 	private Expr genMetaClassInit() {

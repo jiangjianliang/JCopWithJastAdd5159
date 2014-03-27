@@ -5,7 +5,14 @@ package jcop.generation.jcopaspect;
 
 import AST.LayerDeclaration;
 import AST.MethodDecl;
-
+/**
+ * Documented by wander,
+ * 
+ * <pre>
+ * FIXME wander: when to use
+ * </pre>
+ *
+ */
 public class PartialMethodAdviceGenerator extends AdviceGenerator {
 
 		public PartialMethodAdviceGenerator(LayerDeclaration decl, MethodDecl  partialMethod) {

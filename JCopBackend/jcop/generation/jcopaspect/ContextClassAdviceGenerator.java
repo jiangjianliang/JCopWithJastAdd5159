@@ -15,9 +15,12 @@ import AST.PointcutExpr;
 import AST.Program;
 
 /**
- * Documented by wander, generate helper pointcut 'jcopLookup', context
- * activation advice
+ * Documented by wander,
  * 
+ * <pre>
+ * generate helper pointcut 'jcopLookup', context
+ * activation advice
+ * </pre>
  */
 class ContextClassAdviceGenerator extends AdviceGenerator {
 	private ContextDecl decl;
@@ -73,21 +76,34 @@ class ContextClassAdviceGenerator extends AdviceGenerator {
 	}
 
 	/**
-	 * genrate a string about context activation for If pointcut, {@code Object
-	 * around(): execution(@jcop.lang.LayeredMethod * *.*(..)) && !jcopLookup())
-	 * AAA} for Execution pointcut,
-	 * {@code
-	 *   Object around() :  execution( void PhoneAlert.helper()) &&  !jcopLookup()
-	 * }, where AAA is {@code ContextComposition ctx = JCop.currentContexts();
-	 * Composition old =
-	 * JCop.current().withLayer(JCop.currentContexts().notifyExecution(
-	 * contexts.
-	 * LibraryContext.class,thisJoinPoint.getSignature().toLongString()));
+	 * genrate a string about context activation
 	 * 
-	 * try{ return proceed();} finally{ { JCop.setComposition(old); } }
+	 * <pre>
+	 * for If pointcut:
+	 * <code>
+	 * Object around(): execution(@jcop.lang.LayeredMethod * *.*(..)) && !jcopLookup()) BBB} 
+	 * </code>
+	 * for Execution pointcut:
+	 * <code>
+	 *   Object around() :  execution( void PhoneAlert.helper()) &&  !jcopLookup() BBB
+	 * </code>
+	 * where BBB is 
+	 * <code>
+	 * {
+	 * ContextComposition ctx = JCop.currentContexts();
+	 * Composition old = JCop.current().withLayer(JCop.currentContexts().notifyExecution(
+	 *    contexts.LibraryContext.class, thisJoinPoint.getSignature().toLongString()));
 	 * 
+	 * try {
+	 *   return proceed();
+	 * } 
+	 * finally{
+	 *  JCop.setComposition(old);
 	 * }
 	 * 
+	 * }
+	 * </code>
+	 * </pre>
 	 * 
 	 * @param executionSignatures
 	 */
@@ -125,8 +141,10 @@ class ContextClassAdviceGenerator extends AdviceGenerator {
 				{ "pointcut", generatePointcut(pointcut) } });
 
 	}
+
 	/**
 	 * choose correct pointcut expression for the advice
+	 * 
 	 * @param pointcut
 	 * @return
 	 */

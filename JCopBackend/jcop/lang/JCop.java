@@ -48,7 +48,7 @@ public class JCop {
 	}
 
 	/**
-	 * used for global active (staticactive) contextclass
+	 * used for global active (staticactive) contextclass/layer
 	 */
 	public static final Compositions global = new Compositions();
 

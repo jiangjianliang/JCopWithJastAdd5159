@@ -60,20 +60,22 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	}
 
 	/**
-	 * generate {@link AST.Block Block} for 
+	 * generate {@link AST.Block Block} for layer activation
+	 * 
 	 * <pre>
 	 * <code>
 	 *   {@code <possibleLogging>}
 	 *   jcop.lang.Composition __composition__ = jcop.lang.JCop.current();
 	 *   try{
 	 *     __composition__.firstLayer().get().{@code <delegationMethodName>}
-	 * (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
+	 *   (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
 	 *   }
 	 *   finally {
 	 *     jcop.lang.JCop.setComposition(__composition__);
 	 *   }
 	 * </code>
 	 * </pre>
+	 * 
 	 * @return
 	 */
 	public Block generateLayerActivationBlock() {

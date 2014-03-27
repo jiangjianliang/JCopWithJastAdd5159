@@ -23,6 +23,14 @@ import AST.PartialMethodDecl;
 import AST.PointcutExpr;
 import AST.TypeDecl;
 
+/**
+ * Documented by wander,
+ * 
+ * <pre>
+ * helper class related aspect
+ * </pre>
+ * 
+ */
 public class JCopAspect {
 	private static JCopAspect singleton;
 	private HashSet<TypeDecl> layerImports;
@@ -45,8 +53,8 @@ public class JCopAspect {
 
 	/**
 	 * generate wrapper for {@code <field>} with
-	 * {@link PartialFieldAdviceGenerator}
-	 * FIXME  wander: what it used for
+	 * {@link PartialFieldAdviceGenerator} FIXME wander: when to use
+	 * 
 	 * @param field
 	 * @param layer
 	 */
@@ -59,7 +67,12 @@ public class JCopAspect {
 				advice);
 		gen.createFieldAccessorAdviceOnce(field, fqnName, flattenedName);
 	}
-
+	/**
+	 * 
+	 * @param decl
+	 * @param pointcutSignature
+	 * @param executionSignatures
+	 */
 	public void addContextActivations(ContextDecl decl,
 			PointcutExpr pointcutSignature, List<String> executionSignatures) {
 		ContextClassAdviceGenerator gen = new ContextClassAdviceGenerator(
@@ -67,6 +80,11 @@ public class JCopAspect {
 		gen.genContextActivation(executionSignatures);
 	}
 
+	/**
+	 * generate static context activation
+	 * 
+	 * @param decl
+	 */
 	public void addStaticContextActivation(ContextDecl decl) {
 		StaticContextObjectAdviceGenerator gen = new StaticContextObjectAdviceGenerator(
 				advice, decl);
@@ -75,8 +93,7 @@ public class JCopAspect {
 
 	/**
 	 * generate layer activation statements for list of {@link ParseName} with
-	 * {@link SubjectLayerAdviceGenerator}
-	 * FIXME wander: what this used for
+	 * {@link SubjectLayerAdviceGenerator} FIXME wander: when to use
 	 * 
 	 * @param subjects
 	 * @param layerComposition

@@ -14,7 +14,7 @@ import AST.TypeDecl;
  * Documented by wander,
  * 
  * <pre>
- * 
+ * XXX wander: when to use
  * </pre>
  */
 public class PartialFieldAdviceGenerator extends AdviceGenerator {
