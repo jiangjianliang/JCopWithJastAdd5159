@@ -206,9 +206,10 @@ public class Layer {
 	public final Layer _superlayer = this;
 
 	public Composition onWith(Composition composition) {
-		checkExcludes(composition);
-		Composition comp = checkWeakExcludes(composition);
-		return comp;
+		//WANDER: for simplicity, since weakExcludes is not used in JCop
+		//checkExcludes(composition);
+		//Composition comp = checkWeakExcludes(composition);
+		return composition;
 
 	}
 

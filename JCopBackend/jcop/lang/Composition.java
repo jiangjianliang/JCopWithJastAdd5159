@@ -165,6 +165,9 @@ public class Composition implements Cloneable {
 	public LayerProxy firstLayer() {
 		// WANDER
 		// return ((LayerProxy) getTmpLayerComposition().get(0));
+		//FIXME this may disturb original atomic property
+		JCop.threadGroup.set(JCop.threadGroupComposition());
+		
 		return ((LayerProxy) getTmpLayerComposition().getFirst());
 	}
 
@@ -260,7 +263,7 @@ public class Composition implements Cloneable {
 	// Arrays.asList(Layer.getLayers()));
 	// }
 	/**
-	 * FIXME what this used for
+	 * FIXME when to use
 	 * 
 	 * @param signature
 	 * @param target
@@ -331,8 +334,15 @@ public class Composition implements Cloneable {
 		 * LayerProxy(BaseLayer.getInstance())); return (ArrayList<LayerProxy>)
 		 * tmpList;
 		 */
+		//FIXME need to satisfy the following property, such as
+		//when called from first(), a newest layer composition is returned
+		//when called from next(), a old layer composition is returned
+		//where newest and old is related to global layer composition change
 		LinkedList<LayerProxy> tmpList = new LinkedList<LayerProxy>();
 		tmpList.addAll(Arrays.asList(Layer.getStaticActiveLayers()));
+		//FIXME note! this may be an recursion
+		tmpList.addAll(JCop.threadGroup.get().getDirectActivatedLayers());
+		
 		tmpList.addAll(this.getDirectActivatedLayers());
 		tmpList.add(new LayerProxy(BaseLayer.getInstance()));
 		return (LinkedList<LayerProxy>) tmpList;

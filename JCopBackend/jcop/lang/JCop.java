@@ -1,5 +1,7 @@
 package jcop.lang;
 
+import java.util.WeakHashMap;
+
 /**
  * Documented by wander,
  * 
@@ -18,6 +20,116 @@ public class JCop {
 		}
 	};
 
+	// wander: begin modification
+	/**
+	 * each thread has their own copy of threadgroup composition
+	 */
+	public static final ThreadLocal<Composition> threadGroup = new ThreadLocal<Composition>() {
+		protected Composition initialValue() {
+			return new Composition();
+		}
+	};
+
+	/**
+	 * WANDER: WeakHashMap
+	 */
+	public static final WeakHashMap<Thread, Composition> threadGroupMap = new WeakHashMap<Thread, Composition>();
+
+	/**
+	 * later it should throw Exception
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public static boolean bindTo(Thread from, Thread to) {
+		synchronized (threadGroupMap) {
+			Composition fromComp = threadGroupMap.get(from);
+			Composition toComp = threadGroupMap.get(to);
+			if (fromComp == null) {
+				fromComp = new Composition();
+				threadGroupMap.put(from, fromComp);
+			}
+			if (toComp != null) {
+				return false;
+			} else {
+				threadGroupMap.put(to, fromComp);
+			}
+		}
+		return true;
+	}
+
+	public static Composition threadGroupComposition() {
+		Composition comp;
+		synchronized (threadGroupMap) {
+			comp = threadGroupMap.get(Thread.currentThread());
+			if (comp == null) {
+				// TODO
+				comp = addComposition();
+				System.err
+						.println("threadGroupWith: current thread group composition is null");
+			}
+		}
+		return comp;
+	}
+
+	/**
+	 * 
+	 * @param toBeAdded
+	 */
+	public static void threadGroupWith(Layer toBeAdded) {
+		synchronized (threadGroupMap) {
+			Composition comp = threadGroupMap.get(Thread.currentThread());
+			if (comp == null) {
+				comp = addComposition();
+				System.err
+						.println("threadGroupWith: current thread group composition is null");
+			}
+			comp.addLayer(toBeAdded);
+		}
+	}
+
+	/**
+	 * 
+	 * @param toBeRemoved
+	 */
+	public static void threadGroupWithout(Layer toBeRemoved) {
+		synchronized (threadGroupMap) {
+			Composition comp = threadGroupMap.get(Thread.currentThread());
+			if (comp == null) {
+				comp = addComposition();
+				System.err
+						.println("threadGroupWithout: current thread group composition is null");
+			}
+			comp.removeLayer(toBeRemoved);
+		}
+	}
+
+	/**
+	 * 
+	 * @param toBeRemove
+	 * @param toBeAdded
+	 */
+	public static void threadGroupReplace(Layer toBeRemoved, Layer toBeAdded) {
+		synchronized (threadGroupMap) {
+			Composition comp = threadGroupMap.get(Thread.currentThread());
+			if (comp == null) {
+				comp = addComposition();
+				System.err
+						.println("threadGroupWithout: current thread group composition is null");
+			}
+			comp.removeLayer(toBeRemoved);
+			comp.addLayer(toBeAdded);
+		}
+	}
+
+	private static Composition addComposition() {
+		Composition comp = new Composition();
+		threadGroupMap.put(Thread.currentThread(), comp);
+		return comp;
+	}
+
+	// wander: end modification
 	public static Class[] getLayerClasses() {
 		return Layer.BASE.getAllLayerClasses();
 	}
