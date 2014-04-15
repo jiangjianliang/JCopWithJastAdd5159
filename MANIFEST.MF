@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 19.1-b02 (Sun Microsystems Inc.)
+Built-By: malte.appeltauer
+Main-Class: jcop.compiler.JCopCompiler
+Class-Path: aspectjrt.jar aspectjtools.jar agg_V165_classes.jar
+
+Name: common
+Specification-Title: JCop Compiler
+Specification-Version: v2012-04-17_16-23
+Specification-Vendor: Software Architecture Group, Hasso-Plattner-Inst
+ itute
+Implementation-Title: JCop Compiler
+Implementation-Version: v2012-04-17_16-23 April 17 2012
+Implementation-Vendor: Software Architecture Group, Hasso-Plattner-Ins
+ titute
+

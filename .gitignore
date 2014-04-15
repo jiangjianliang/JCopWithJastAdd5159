@@ -1,8 +1,16 @@
 #################
+## AST
+#################
+JCopBackend/AST/
+JCopBackend/beaver/
+JCopBackend/parser/
+JCopBackend/scanner/
+
+#################
 ## Eclipse
 #################
 *.class
-*.jar
+tools/*.jar
 *.pydevproject
 .project
 .metadata
