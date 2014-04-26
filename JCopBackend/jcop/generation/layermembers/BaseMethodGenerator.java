@@ -3,18 +3,25 @@ package jcop.generation.layermembers;
 import jcop.Globals;
 import jcop.Globals.ID;
 import jcop.Globals.Msg;
+import jcop.Globals.Types;
 import static jcop.Globals.Types.*;
 import jcop.compiler.JCopTypes.JCopAccess;
 import jcop.generation.RunTimeLoggingGenerator;
 import AST.Access;
 import AST.Annotation;
+import AST.ArrayAccess;
+import AST.ArrayTypeAccess;
 import AST.Block;
+import AST.CastExpr;
 import AST.CatchClause;
 import AST.ClassInstanceExpr;
 import AST.Dot;
 import AST.ElementValuePair;
 import AST.Expr;
 import AST.ExprStmt;
+import AST.GTExpr;
+import AST.IfStmt;
+import AST.IntegerLiteral;
 import AST.List;
 import AST.MethodAccess;
 import AST.MethodDecl;
@@ -68,10 +75,18 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 *   jcop.lang.Composition __composition__ = jcop.lang.JCop.current();
 	 *   try{
 	 *     __composition__.firstLayer().get().{@code <delegationMethodName>}
-	 *   (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
+	 *   ({@code <targetArgs>}, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
 	 *   }
 	 *   finally {
 	 *     jcop.lang.JCop.setComposition(__composition__);
+	 *   }
+	 * </code>
+	 * is replaced by
+	 * <code>
+	 * {@code <possibleLogging>}
+	 *   LayerProxy[] __arr__ = jcop.lang.JCop.construct((Object)this);
+	 *   if(__arr__.length > 0){
+	 * 	   __arr[0]__.{@code <delegationMethodName>}({@code <targetArgs>}, 0, __arr__, {@code <oldArgs>});
 	 *   }
 	 * </code>
 	 * </pre>
@@ -79,16 +94,26 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 * @return
 	 */
 	public Block generateLayerActivationBlock() {
-		VariableDeclaration current = generateVarForCurrentCompostion(); // generateVarForOldCompostion();
-		// generateVarForOldCompostion();
-		// VariableDeclaration current = generateVarForCurrentCompostion();
-		// ExprStmt activateContexts = activateContexts();
+		VariableDeclaration current = generateVarForCurrentCompostion();
+		// Block block = createStmtBlock(current,
+		// createTryBlock(createFirstLayerAccess()));
 		Block block = createStmtBlock(current,
-				createTryBlock(createFirstLayerAccess()));
+				createIfBlock(createFirstLayerAccess()));
 		return logGenerator.genLayeredMethodBlock(block,
 				baseMethod.getFullQualifiedName());
 		// return block;
 	}
+
+	// begin new-feature
+	private Stmt createIfBlock(Expr toBeWrapped) {
+		Expr gtExpr = new GTExpr(
+				new VarAccess(ID.wander_Composition).qualifiesAccess(new VarAccess(
+						"length")), new IntegerLiteral(0));
+		IfStmt ifStmt = new IfStmt(gtExpr, new ExprStmt(toBeWrapped));
+		return ifStmt;
+	}
+
+	// end new-feature
 
 	/**
 	 * generate {@link AST.MethodDecl MethodDecl} for base method
@@ -197,21 +222,34 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 * <pre>
 	 * <code>
 	 * __composition__.firstLayer().get().{@code <delegationMethodName>}
-	 * (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
+	 * ({@code <targetArgs>}, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
+	 * </code>
+	 * is replaced by
+	 * <code>
+	 * __arr__[0].get().{@code <delegationMethodName>}({@code <targetArgs>}, 0, __arr__, {@code <oldArgs>});
 	 * </code>
 	 * </pre>
+	 * 
 	 * 
 	 * @return
 	 */
 	private Expr createFirstLayerAccess() {
 		String delegationMethodName = generateDelegationMethodName(partialMethod);
 		List<Expr> args = createArgsForCallToLayeredMethod();
-		Dot concreteLayerWithParams = new VarAccess(ID.composition)
-				.qualifiesAccess(createMethodAccess(ID.firstLayer)
-						.qualifiesAccess(
-								createMethodAccess("get").qualifiesAccess(
+		// Dot concreteLayerWithParams = new VarAccess(ID.composition)
+		// .qualifiesAccess(createMethodAccess(ID.firstLayer)
+		// .qualifiesAccess(
+		// createMethodAccess("get").qualifiesAccess(
+		// createMethodAccess(
+		// delegationMethodName, args))));
+		Dot concreteLayerWithParams = new VarAccess(ID.wander_Composition)
+				.qualifiesAccess(new ArrayAccess(new IntegerLiteral(0)))
+				.qualifiesAccess(
+						createMethodAccess(
+								ID.wander_LayerProxyToLayerMethodName)
+								.qualifiesAccess(
 										createMethodAccess(
-												delegationMethodName, args))));
+												delegationMethodName, args)));
 		return concreteLayerWithParams;
 	}
 
@@ -263,14 +301,39 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 * <code>
 	 * jcop.lang.Composition __composition__ = jcop.lang.JCop.current();
 	 * </code>
+	 * is replaced by
+	 * <code>
+	 * jcop.lang.LayerProxy[] __arr__ = jcop.lang.JCop.construct((Object)this);
+	 * </code>
 	 * </pre>
 	 * 
 	 * @return
 	 */
 	private VariableDeclaration generateVarForCurrentCompostion() {
-		return new VariableDeclaration(JCopAccess.get(COMPOSITION),
-				ID.composition, createCurrentCompositionAccess());
+		// return new VariableDeclaration(JCopAccess.get(COMPOSITION),
+		// ID.composition, createCurrentCompositionAccess());
+		Access arrAccess = new ArrayTypeAccess(new TypeAccess(
+				Globals.jcopPackage, Types.LAYER_PROXY));
+		return new VariableDeclaration(arrAccess, ID.wander_Composition,
+				createNewCurrentCompositionAccess());
 	}
+
+	// begin new-feature
+	/**
+	 * jcop.lang.JCop.construct((Object)this);
+	 * 
+	 * @return
+	 */
+	private Access createNewCurrentCompositionAccess() {
+
+		return JCopAccess.get(JCOP).qualifiesAccess(
+				createMethodAccess(ID.wander_ConstructNewCompositionMethodName,
+						new CastExpr(new TypeAccess("Object"), new ThisAccess(
+								"this"))));
+
+	}
+
+	// end new-feature
 
 	/**
 	 * generate list of {@link AST.Expr Expr} for args of layered method
@@ -279,18 +342,25 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 * <code>
 	 * [{@code <target>}, __composition__.firstLayer(), __composition__, {@code <oldArgs>}]
 	 * </code>
-	 * <target> can be {@link AST.ClassInstanceExpr ClassInstanceExpr} or {@link AST.ThisAccess ThisAccess}
-	 * depending on method is static or not
+	 * {@code <target>} can be {@link AST.ClassInstanceExpr ClassInstanceExpr} or {@link AST.ThisAccess ThisAccess}
+	 * depending on method is static or not.
+	 * It is replaced by
+	 * <code>
+	 * [{@code <target>}, 0, __arr__, {@code <oldArgs>}]
+	 * </code>
 	 * </pre>
+	 * 
 	 * 
 	 * @return
 	 */
 	private List<Expr> createArgsForCallToLayeredMethod() {
 		List<Expr> args = generateArgs(baseMethod.getParameterList());
 		args.insertChild(createTargetArgsForCallToLayeredMethod(baseMethod), 0);
-		args.insertChild(new VarAccess(ID.composition)
-				.qualifiesAccess(createMethodAccess(ID.firstLayer)), 1);
-		args.insertChild(new VarAccess(ID.composition), 2);
+		// args.insertChild(new VarAccess(ID.composition)
+		// .qualifiesAccess(createMethodAccess(ID.firstLayer)), 1);
+		// args.insertChild(new VarAccess(ID.composition), 2);
+		args.insertChild(new IntegerLiteral(0), 1);
+		args.insertChild(new VarAccess(ID.wander_Composition), 2);
 		return args;
 	}
 

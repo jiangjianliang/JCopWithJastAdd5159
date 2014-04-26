@@ -10,24 +10,30 @@ import static jcop.Globals.Types.PARTIAL_METHOD;
 import static jcop.Globals.Types.PARTIAL_METHOD_ANNOTATION;
 import jcop.Globals;
 import jcop.Globals.ID;
+import jcop.Globals.Types;
 import jcop.compiler.JCopTypes.JCopAccess;
 import jcop.generation.RunTimeLoggingGenerator;
 import jcop.generation.layers.LayerClassGenerator;
 import AST.Access;
+import AST.AddExpr;
+import AST.ArrayAccess;
 import AST.ArrayCreationExpr;
 import AST.ArrayInit;
 import AST.ArrayTypeAccess;
+import AST.ArrayTypeWithSizeAccess;
 import AST.Block;
 import AST.CatchClause;
 import AST.ClassInstanceExpr;
 import AST.Expr;
 import AST.ExprStmt;
+import AST.IntegerLiteral;
 import AST.LayerDeclaration;
 import AST.List;
 import AST.MethodDecl;
 import AST.Modifiers;
 import AST.Opt;
 import AST.ParameterDeclaration;
+import AST.PreIncExpr;
 import AST.ProceedExpr;
 import AST.ReturnStmt;
 import AST.Stmt;
@@ -129,7 +135,10 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 	}
 
 	/**
+	 * <p>
 	 * generate list of {@link ParameterDeclaration} for decl
+	 * </p>
+	 * WANDER
 	 * 
 	 * @param decl
 	 * @return
@@ -139,13 +148,30 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 		List<ParameterDeclaration> params = decl.getParameterList().fullCopy();
 		params.insertChild(new ParameterDeclaration(concreteLayerAccess,
 				ID.layerParameterName), 0);
-		params.insertChild(new ParameterDeclaration(
-				JCopAccess.get(LAYER_PROXY), ID.layerProxyParameterName), 1);
-		params.insertChild(new ParameterDeclaration(
-				JCopAccess.get(COMPOSITION), ID.composition), 2);
+
+		// params.insertChild(new ParameterDeclaration(
+		// JCopAccess.get(LAYER_PROXY), ID.layerProxyParameterName), 1);
+		// params.insertChild(new ParameterDeclaration(
+		// JCopAccess.get(COMPOSITION), ID.composition), 2);
+
+		params.insertChild(new ParameterDeclaration(createCurrentIndexAccess(),
+				ID.wander_CurrentLayerIndex), 1);
+		params.insertChild(new ParameterDeclaration(createListAccess(),
+				ID.wander_Composition), 2);
 		return params;
 	}
 
+	// begin new-feature
+	private Access createCurrentIndexAccess() {
+		return new TypeAccess("int");
+	}
+
+	private Access createListAccess() {
+		return new ArrayTypeAccess(new TypeAccess(Globals.jcopPackage,
+				Types.LAYER_PROXY));
+	}
+
+	// end new-feature
 	/**
 	 * generate {@code Block} for before/after semantics
 	 * 
@@ -235,11 +261,37 @@ public class PartialMethodGenerator extends LayeredMethodGenerator {
 			Stmt s2 = new ReturnStmt(new VarAccess(var));
 			stmts.insertChild(s1, 0);
 			stmts.addChild(s2);
-		} else
+		} else {
 			stmts.insertChild(genProceedExprStmt(), 0);
+		}
 		return block;
 	}
 
+	// begin new-feature
+
+	/**
+	 * <pre>
+	 * <code>
+	 * jcop.lang.LayerProxy __nextLayer__ = __composition__[__current__+1];
+	 * </code>
+	 * WANDER we should check that __current__ < __composition__.length
+	 * since the last Layer is BaseLayer, now we don't explicitly check that constrain
+	 * </pre>
+	 * 
+	 * @deprecated
+	 * @return
+	 */
+	private Stmt genNextStmt() {
+		Expr curIncExpr = new AddExpr(
+				new VarAccess(ID.wander_CurrentLayerIndex), new IntegerLiteral(
+						1));
+		return new VariableDeclaration(new TypeAccess(Globals.jcopPackage,
+				Types.LAYER_PROXY), ID.wander_NextLayer, new VarAccess(
+				ID.wander_Composition).qualifiesAccess(new ArrayAccess(
+				curIncExpr)));
+	}
+
+	// end new-feature
 	/**
 	 * generate {@link Stmt} FIXME wander: when to use
 	 * 

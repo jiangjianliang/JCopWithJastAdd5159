@@ -40,6 +40,7 @@ public class Globals {
 	public static final String jcopJar = "jcop.jar";
 
 	public static String jcopFilesSrcFolder = "src";
+	//public static String jcopFilesSrcFolder = "JCopBackend";
 	public static final String jcopFilesDestFolder = "jcop" + File.separator
 			+ "lang";
 	public static final String contextjFilesFolder = "contextj_classes";
@@ -183,6 +184,11 @@ public class Globals {
 	}
 
 	public interface ID {
+		public static final String wander_CurrentLayerIndex = "__current__";
+		public static final String wander_NextLayer = "__nextLayer__";
+		public static final String wander_Composition = "__arr__";
+		public static final String wander_ConstructNewCompositionMethodName = "construct";
+		public static final String wander_LayerProxyToLayerMethodName = "get";
 		public static final String proceedVarname = lang + "__return__value";
 		public static final String wrappedMethodPrefix = "__wrapped__";
 		// no ___ for this variable since it is directly used as the thislayer

@@ -31,12 +31,14 @@ import static jcop.Globals.Types.*;
 
 import jcop.Globals;
 import jcop.Globals.ID;
+import jcop.Globals.Types;
 import jcop.compiler.JCopTypes.JCopAccess;
 import jcop.generation.Generator;
 import jcop.transformation.ASTTools.Generation;
 import jcop.transformation.lookup.Lookup;
 import AST.Access;
 import AST.ArrayDecl;
+import AST.ArrayTypeAccess;
 import AST.ClassDecl;
 import AST.Dot;
 import AST.Expr;
@@ -59,8 +61,10 @@ import AST.ThisAccess;
 import AST.TypeAccess;
 import AST.TypeDecl;
 import AST.VarAccess;
+
 /**
  * Documented by wander
+ * 
  * <pre>
  * generate constructs for {@link LayerDeclaration}
  * </pre>
@@ -88,8 +92,11 @@ public class LayerClassGenerator extends LayerGenerator {
 		return new ParameterDeclaration(createLayerTypeAccess(),
 				ID.layerParameterName);
 	}
+
 	/**
-	 * generate delegation method named{@code <generatedMethodName>} for {@code <baseMethodDecl>}
+	 * generate delegation method named{@code <generatedMethodName>} for
+	 * {@code <baseMethodDecl>}
+	 * 
 	 * @param baseFieldDecl
 	 * @param generatedMethodName
 	 * @param delegation
@@ -105,7 +112,8 @@ public class LayerClassGenerator extends LayerGenerator {
 	}
 
 	/**
-	 * generate delegation method named {@code <generatedMethodName>} for {@code <baseMethodDecl>}
+	 * generate delegation method named {@code <generatedMethodName>} for
+	 * {@code <baseMethodDecl>}
 	 * 
 	 * @param baseMethodDecl
 	 * @param generatedMethodName
@@ -187,10 +195,19 @@ public class LayerClassGenerator extends LayerGenerator {
 
 	}
 
+	/**
+	 * WANDER 这里的修改不是很确定
+	 * 
+	 * @param toBeExtended
+	 * @return
+	 */
 	protected List<Expr> genLayerParams(List<Expr> toBeExtended) {
 		toBeExtended.insertChild(new ThisAccess(ID.layerParameterName), 0);
-		toBeExtended.insertChild(new VarAccess(ID.layerProxyParameterName), 1);
-		toBeExtended.insertChild(new VarAccess(ID.composition), 2);
+		// toBeExtended.insertChild(new VarAccess(ID.layerProxyParameterName),
+		// 1);
+		// toBeExtended.insertChild(new VarAccess(ID.composition), 2);
+		toBeExtended.insertChild(new VarAccess(ID.wander_CurrentLayerIndex), 1);
+		toBeExtended.insertChild(new VarAccess(ID.wander_Composition), 2);
 		return toBeExtended;
 	}
 
@@ -238,7 +255,9 @@ public class LayerClassGenerator extends LayerGenerator {
 		}
 		return newParams;
 	}
+
 	/**
+	 * WANDER
 	 * 
 	 * @param baseMemberDecl
 	 * @param params
@@ -249,14 +268,32 @@ public class LayerClassGenerator extends LayerGenerator {
 		List<ParameterDeclaration> newParams = params.fullCopy();
 		newParams.insertChild(new ParameterDeclaration(
 				createTargetAccess(baseMemberDecl), ID.targetParameterName), 0);
-		newParams.insertChild(
-				new ParameterDeclaration(JCopAccess.get(LAYER_PROXY),
-						ID.layerProxyParameterName), 1);
-		newParams.insertChild(
-				new ParameterDeclaration(JCopAccess.get(COMPOSITION),
-						ID.composition), 2);
+
+		// newParams.insertChild(
+		// new ParameterDeclaration(JCopAccess.get(LAYER_PROXY),
+		// ID.layerProxyParameterName), 1);
+		// newParams.insertChild(
+		// new ParameterDeclaration(JCopAccess.get(COMPOSITION),
+		// ID.composition), 2);
+
+		newParams.insertChild(new ParameterDeclaration(
+				createCurrentIndexAccess(), ID.wander_CurrentLayerIndex), 1);
+		newParams.insertChild(new ParameterDeclaration(createListAccess(),
+				ID.wander_Composition), 2);
 		return newParams;
 	}
+
+	// begin new-feature
+	private Access createCurrentIndexAccess() {
+		return new TypeAccess("int");
+	}
+
+	private Access createListAccess() {
+		return new ArrayTypeAccess(new TypeAccess(Globals.jcopPackage,
+				Types.LAYER_PROXY));
+	}
+
+	// end new-feature
 
 	private Modifiers getTransformedModifiersFor(NamedMember method) {
 		Modifiers modifiers = createPublicModifierFor(method);
@@ -279,13 +316,16 @@ public class LayerClassGenerator extends LayerGenerator {
 		addSuperLayerParams(args);
 		return args;
 	}
+
 	/**
 	 * generate delegation method in superlayer.
+	 * 
 	 * <pre>
 	 * <code>
 	 *   __superlayer__{@code <genMethodName>}
 	 * </code>
 	 * </pre>
+	 * 
 	 * @param originalMethodDecl
 	 * @param genMethodName
 	 * @return
@@ -302,9 +342,16 @@ public class LayerClassGenerator extends LayerGenerator {
 		return method;
 	}
 
+	/**
+	 * WANDER 这里的修改不是很确定
+	 * 
+	 * @param args
+	 */
 	private void addSuperLayerParams(List<Expr> args) {
 		args.insertChild(new VarAccess(ID.targetParameterName), 0);
-		args.insertChild(new VarAccess(ID.layerProxyParameterName), 1);
-		args.insertChild(new VarAccess(ID.composition), 2);
+		// args.insertChild(new VarAccess(ID.layerProxyParameterName), 1);
+		// args.insertChild(new VarAccess(ID.composition), 2);
+		args.insertChild(new VarAccess(ID.wander_CurrentLayerIndex), 1);
+		args.insertChild(new VarAccess(ID.wander_Composition), 2);
 	}
 }

@@ -292,7 +292,7 @@ public class Composition implements Cloneable {
 	 * <li>current active layers</li>
 	 * <li>BaseLayer</li>
 	 * </ul>
-	 * 
+	 * WANDER 修改这个，来扩展新功能
 	 * @return
 	 */
 	public ArrayList<LayerProxy> buildTmpLayerComposition() {

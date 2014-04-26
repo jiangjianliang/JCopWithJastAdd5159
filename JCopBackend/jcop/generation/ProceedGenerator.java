@@ -2,20 +2,26 @@ package jcop.generation;
 
 import jcop.Globals;
 import jcop.Globals.ID;
+import jcop.Globals.Types;
 import jcop.generation.layermembers.LayeredMethodGenerator;
 import AST.Access;
+import AST.AddExpr;
+import AST.ArrayAccess;
 import AST.ClassInstanceExpr;
 import AST.Expr;
+import AST.IntegerLiteral;
 import AST.List;
 import AST.MethodDecl;
 import AST.NullLiteral;
 import AST.ParameterDeclaration;
 import AST.ProceedExpr;
+import AST.Stmt;
 import AST.SuperAccess;
 import AST.ThisAccess;
 import AST.TypeAccess;
 import AST.TypeDecl;
 import AST.VarAccess;
+import AST.VariableDeclaration;
 
 /**
  * Documented by wander
@@ -58,8 +64,11 @@ public class ProceedGenerator extends Generator {
 	 * 
 	 * <pre>
 	 * <code>
-	 * jcop.lang.JCop.current().next(__proxy__).get().{@code <methodName>}({@code <mergedArgs>)
+	 * jcop.lang.JCop.current().next(__proxy__).get().{@code <methodName>}({@code <mergedArgs>})
 	 * </code>
+	 * is replaced by
+	 * __arr__[__current__+1].get().{@code <methodName>}({@code <mergedArgs>})
+	 * WANDER we should check constrain that __current__+1 < __arr__.length
 	 * </pre>
 	 * 
 	 * @return
@@ -67,12 +76,22 @@ public class ProceedGenerator extends Generator {
 	public Access generateAccess() {
 		LayeredMethodGenerator gen = new LayeredMethodGenerator(enclosingPmd);
 		String methodName = gen.generateDelegationMethodName(enclosingPmd);
-		List<Expr> enclMethodArgs = getArgsWithObjectAndCompositionReference(createNextLayerMethodAccess());
+		// List<Expr> enclMethodArgs =
+		// getArgsWithObjectAndCompositionReference(createNextLayerMethodAccess());
+		List<Expr> enclMethodArgs = getArgsWithObjectAndCompositionReference(null);
 		List<Expr> mergedArgs = mergeProceedArgs(enclMethodArgs,
 				proceed.getArgList());
-		return createNextLayerMethodAccess().qualifiesAccess(
-				createMethodAccess("get").qualifiesAccess(
-						createMethodAccess(methodName, mergedArgs)));
+		// return createNextLayerMethodAccess().qualifiesAccess(
+		// createMethodAccess("get").qualifiesAccess(
+		// createMethodAccess(methodName, mergedArgs)));
+		Expr curIncExpr = new AddExpr(
+				new VarAccess(ID.wander_CurrentLayerIndex), new IntegerLiteral(
+						1));
+		return new VarAccess(ID.wander_Composition)
+				.qualifiesAccess(new ArrayAccess(curIncExpr))
+				.qualifiesAccess(
+						createMethodAccess(ID.wander_LayerProxyToLayerMethodName))
+				.qualifiesAccess(createMethodAccess(methodName, mergedArgs));
 	}
 
 	/**
@@ -80,13 +99,14 @@ public class ProceedGenerator extends Generator {
 	 * 
 	 * <pre>
 	 * <code>
-	 * thislayer.__superlayer__{@code <delegationMethod>}(__target__, {@link <otherArgs>}, {@link <proceedArgs>})
+	 * thislayer.__superlayer__{@code <delegationMethod>}(__target__, {@code <otherArgs>}, {@code <proceedArgs>})
 	 * </code>
 	 * or
 	 * <code>
-	 * thislayer.__superlayer__{@code <delegationMethod>}({@link <otherArgs>}, {@link <proceedArgs>})
+	 * thislayer.__superlayer__{@code <delegationMethod>}({@code <otherArgs>}, {@code <proceedArgs>})
 	 * </code>
 	 * </pre>
+	 * 
 	 * 
 	 * @return
 	 */
@@ -94,8 +114,10 @@ public class ProceedGenerator extends Generator {
 		LayeredMethodGenerator gen = new LayeredMethodGenerator(enclosingPmd);
 		String methodName = Globals.ID.superlayer
 				+ gen.generateDelegationMethodName(enclosingPmd);
-		List<Expr> enclMethodArgs = getArgsWithObjectAndCompositionReference(new VarAccess(
-				ID.layerProxyParameterName));
+		// List<Expr> enclMethodArgs =
+		// getArgsWithObjectAndCompositionReference(new VarAccess(
+		// ID.layerProxyParameterName));
+		List<Expr> enclMethodArgs = getArgsWithObjectAndCompositionReference(null);
 		List<Expr> mergedArgs = mergeProceedArgs(enclMethodArgs,
 				proceed.getArgList());
 		return new VarAccess(Globals.ID.layerParameterName)
@@ -123,6 +145,7 @@ public class ProceedGenerator extends Generator {
 	 * </code>
 	 * </pre>
 	 * 
+	 * @deprecated in new-feature
 	 * @return
 	 */
 	private Expr createNextLayerMethodAccess() {
@@ -130,6 +153,10 @@ public class ProceedGenerator extends Generator {
 				createMethodAccess(ID.nextLayer, generateLayerProxyAccess()));
 	}
 
+	/**
+	 * @deprecated in new-feature
+	 * @return
+	 */
 	private Access generateLayerProxyAccess() {
 		return new VarAccess(Globals.ID.layerProxyParameterName);
 	}
@@ -138,14 +165,18 @@ public class ProceedGenerator extends Generator {
 	 * generate list of {@link Expr}
 	 * 
 	 * @param layerProxyExpr
+	 *            this param is not used
 	 * @return
 	 */
 	private List<Expr> getArgsWithObjectAndCompositionReference(
 			Expr layerProxyExpr) {
 		List<Expr> finalArgs = createArgsWithThisOrNullReference();
 
-		finalArgs.addChild(layerProxyExpr);
-		finalArgs.addChild(genCompositionReference());
+		// finalArgs.addChild(layerProxyExpr);
+		// finalArgs.addChild(genCompositionReference());
+		finalArgs.addChild(new AddExpr(new VarAccess(
+				ID.wander_CurrentLayerIndex), new IntegerLiteral(1)));
+		finalArgs.addChild(new VarAccess(ID.wander_Composition));
 
 		for (Expr arg : pmdArgs)
 			finalArgs.add(arg);

@@ -24,6 +24,7 @@ abstract public class Transformer {
 			System.err.println("Error Transforming " + unit.packageName());
 			throw e;
 		} catch (Exception e) {
+			e.printStackTrace();
 			if (new ErrorChecker(unit).foundErrors())
 				System.exit(0);
 			return null;
