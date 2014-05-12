@@ -1,6 +1,7 @@
 package jcop.lang;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.WeakHashMap;
 
@@ -65,7 +66,11 @@ public class JCop {
 	}
 
 	// begin new-feature
-	private static WeakHashMap<Object, Composition> objectMap = new WeakHashMap<Object, Composition>();
+	private static volatile WeakHashMap<Object, Composition> objectMap = new WeakHashMap<Object, Composition>();
+	/**
+	 * used for shielding some layer instance
+	 */
+	private static volatile WeakHashMap<Object, ArrayList<Class<Layer>>> excludeMap = new WeakHashMap<Object, ArrayList<Class<Layer>>>();
 
 	/**
 	 * WANDER 这里也是一个临界区，需要保持多线程下的一些特性
@@ -83,7 +88,8 @@ public class JCop {
 		objComposition.addLayer(toBeAdded);
 	}
 
-	public synchronized static void instanceWithout(Object obj, Layer toBeRemoved) {
+	public synchronized static void instanceWithout(Object obj,
+			Layer toBeRemoved) {
 		Composition objComposition = null;
 		objComposition = objectMap.get(obj);
 		if (objComposition == null) {
@@ -91,6 +97,26 @@ public class JCop {
 			objectMap.put(obj, objComposition);
 		}
 		objComposition.removeLayer(toBeRemoved);
+	}
+
+	public synchronized static void instanceResetExclude(Object obj,
+			Class<Layer> toBeRestore) {
+		ArrayList<Class<Layer>> result = excludeMap.get(obj);
+		if (obj == null) {
+			result = new ArrayList<Class<Layer>>();
+			excludeMap.put(obj, result);
+		}
+		result.remove(toBeRestore);
+	}
+
+	public synchronized static void instanceExclude(Object obj,
+			Class<Layer> toBeExclude) {
+		ArrayList<Class<Layer>> result = excludeMap.get(obj);
+		if (obj == null) {
+			result = new ArrayList<Class<Layer>>();
+			excludeMap.put(obj, result);
+		}
+		result.add(toBeExclude);
 	}
 
 	/**
@@ -104,24 +130,71 @@ public class JCop {
 
 		Composition objComposition = objectMap.get(obj);
 		if (objComposition == null) {
-			//System.err.println("null");
+			// System.err.println("null");
 			objComposition = new Composition();
 			objectMap.put(obj, objComposition);
 		}
 		List<LayerProxy> list = objComposition.getTmpLayerComposition();
-		//System.err.println(list.size());
-		if(list.size() == 1+Layer.getStaticActiveLayers().length){
-			//System.err.println("no instance layer composition");
+		// System.err.println(list.size());
+		if (list.size() == 1 + Layer.getStaticActiveLayers().length) {
+			// System.err.println("no instance layer composition");
 			List<LayerProxy> cur = JCop.current().buildTmpLayerComposition();
 			result.addAll(cur);
-			//System.out.println(cur.size());
-		}
-		else {
-			//System.err.println("having instance layer composition "+list.size());
+			// System.out.println(cur.size());
+		} else {
+			// System.err.println("having instance layer composition "+list.size());
 			result.addAll(list);
-			//result.add(new LayerProxy(Layer.BASE));
+			result.remove(result.size() - 1);// remove BASELayer
+			List<Class<Layer>> temp = getBlockList(obj);
+			result.addAll(filter(JCop.current().buildTmpLayerComposition(),
+					temp));
 		}
 		return result.toArray(new LayerProxy[0]);
+	}
+
+	/**
+	 * get blocked Layer list for Object
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	private static List<Class<Layer>> getBlockList(Object obj) {
+		ArrayList<Class<Layer>> result = excludeMap.get(obj);
+		if (obj == null) {
+			result = new ArrayList<Class<Layer>>();
+			excludeMap.put(obj, result);
+		}
+		return result;
+	}
+
+	/**
+	 * <p>
+	 * remove all instances in list whose class is in toBeBlocked. It is
+	 * guaranteed that BASELayer will always be the last element of return value
+	 * </p>
+	 * <p>
+	 * <b>NOTICE</b>: when {@code toBeBlocked} contains no element, it means
+	 * that all layers except {@code Layer.Base} are blocked
+	 * </p>
+	 * 
+	 * @param list
+	 * @param toBeBlocked
+	 * @return
+	 */
+	private static List<LayerProxy> filter(List<LayerProxy> list,
+			List<Class<Layer>> toBeBlocked) {
+		List<LayerProxy> result = new ArrayList<LayerProxy>();
+		if (toBeBlocked.size() == 0) {
+			// Caution! this contradicts sematics of toBeBlocked
+			result.add(new LayerProxy(Layer.BASE));
+			return result;
+		}
+		for (LayerProxy proxy : list) {
+			if (toBeBlocked.contains(proxy.get().getClass()) == false) {
+				result.add(proxy);
+			}
+		}
+		return result;
 	}
 	// end new-feature
 }
