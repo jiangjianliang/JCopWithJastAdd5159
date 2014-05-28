@@ -189,6 +189,8 @@ public class Globals {
 		public static final String wander_Composition = "__arr__";
 		public static final String wander_ConstructNewCompositionMethodName = "construct";
 		public static final String wander_LayerProxyToLayerMethodName = "get";
+		public static final String wander_InstanceLayerActivationMethodName = "instanceWith";
+		public static final String wander_InstanceLayerDeactivationMethodName = "instanceWithout";
 		public static final String proceedVarname = lang + "__return__value";
 		public static final String wrappedMethodPrefix = "__wrapped__";
 		// no ___ for this variable since it is directly used as the thislayer

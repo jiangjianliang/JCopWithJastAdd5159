@@ -10,7 +10,8 @@
 
 <property environment="env"/>
 <property name="JCOP_HOME" value="../tools"/>
-	
+<property name="classfiledir" value="../bin"/>
+
 <!-- location of Java1.4Frontend -->
 <property name="Java1.4Frontend" value="../Java1.4Frontend"/>
 <!-- location of Java1.4Backend -->
@@ -34,7 +35,8 @@
 
 <!-- compile sources -->
 <target name="build" depends="gen">
-	<javac debug="true" nowarn="true" srcdir="." >
+	<!--<javac debug="true" nowarn="true" srcdir="." >-->
+	<javac debug="true" nowarn="true" srcdir="." destdir="${classfiledir}">
 		<include name="**/*.java"/>
 		<exclude name="test/**"/> 
         <classpath>
@@ -172,6 +174,10 @@
     <delete>
       <fileset dir="." includes="**/*.class"/>
     </delete>
+	<!-- delete all .class files recursively in ${classfiledir} -->
+	<delete>
+	  <fileset dir="${classfiledir}" includes="**/*.class"/>
+	</delete>
 	<delete file="jcop.jar"/>
 	<delete file="JCopBackend-src.jar"/>
 </target>

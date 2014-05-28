@@ -1,0 +1,34 @@
+aspect InstanceLayerActivation {
+	
+	public void InstanceLayerActivation.toString(StringBuffer s){
+		if(getActivation()){
+			s.append("instancewith (");	
+		}
+		else{
+			s.append("instancewithout (");
+		}
+		for (Expr arg : getArgs()) {//
+			arg.toString(s);
+			s.append(", ");
+		}
+		if (getArgs().numChildren() > 0)
+			s.delete(s.length()-2, s.length());
+		s.append(") ");
+	}
+	
+	rewrite InstanceLayerActivation {
+		to ASTNode {
+			if(jcop.compiler.CompilerConfiguration.getInstance().astTransformationsDisabled()){
+				return super.rewriteTo();
+			}
+			else if (getArgs().numChildren() < 2){
+				//at least two parameters
+				return super.rewriteTo();
+			}
+			else{
+				return new jcop.transformation.InstanceLayerActivationTransformer(this).errorCheckAndTransform(hostType().compilationUnit());
+			}
+		}
+	}
+	
+}

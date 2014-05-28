@@ -55,6 +55,14 @@ ProceedExpr:Access ::=
 SuperProceedExpr:ProceedExpr ::= 
   Arg:Expr* ;
 
+// -----------------------------------------------
+// instance layer activation
+// -----------------------------------------------
+InstanceLayerActivation:Access ::=
+  Arg:Expr*
+  <Activation:boolean> ;
+
+
 // ------------------------------------------------------------
 // layer import declaration
 // ------------------------------------------------------------

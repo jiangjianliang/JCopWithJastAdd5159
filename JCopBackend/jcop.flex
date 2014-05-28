@@ -20,4 +20,6 @@
   ".."              { return sym(Terminals.PC_DOTDOT); }
   "subject"         { return sym(Terminals.FORSUBJECT); }  
   "unless"         { return sym(Terminals.UNLESS); }
+  "instancewith" {return sym(Terminals.INSTANCE_LAYER_ACTIVATION); }
+  "instancewithout" {return sym(Terminals.INSTANCE_LAYER_DEACTIVATION); }
  }

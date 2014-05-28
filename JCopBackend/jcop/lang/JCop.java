@@ -78,7 +78,7 @@ public class JCop {
 	 * @param obj
 	 * @param toBeAdded
 	 */
-	public synchronized static void instanceWith(Object obj, Layer toBeAdded) {
+	public synchronized static void instanceWith(Object obj, Layer... toBeAdded) {
 		Composition objComposition = null;
 		objComposition = objectMap.get(obj);
 		if (objComposition == null) {
@@ -88,6 +88,11 @@ public class JCop {
 		objComposition.addLayer(toBeAdded);
 	}
 
+	/**
+	 * 
+	 * @param obj
+	 * @param toBeRemoved
+	 */
 	public synchronized static void instanceWithout(Object obj,
 			Layer toBeRemoved) {
 		Composition objComposition = null;
@@ -160,7 +165,7 @@ public class JCop {
 	 */
 	private static List<Class<Layer>> getBlockList(Object obj) {
 		ArrayList<Class<Layer>> result = excludeMap.get(obj);
-		if (obj == null) {
+		if (result == null) {
 			result = new ArrayList<Class<Layer>>();
 			excludeMap.put(obj, result);
 		}
