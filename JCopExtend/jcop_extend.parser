@@ -1,0 +1,39 @@
+//---------------------------------------------------------------------------------------------
+// instancewith(...)
+//---------------------------------------------------------------------------------------------
+Access method_invocation = 
+  INSTANCE_LAYER_ACTIVATION LPAREN argument_list.l RPAREN
+  {: return new InstanceLayerActivation(l, true); :};
+
+	
+//---------------------------------------------------------------------------------------------
+// instancewithout(...)
+//---------------------------------------------------------------------------------------------
+Access method_invocation = 
+  INSTANCE_LAYER_DEACTIVATION LPAREN argument_list.l RPAREN
+  {: return new InstanceLayerActivation(l, false); :};
+
+
+//
+Opt method_group_body = LPAREN block.b RPAREN {: return b; :};
+
+List method_blocks = 
+	  method_group_body.b {: return new List().add(b); :}
+	| method_blocks.l method_group_body.b  {: l.add(b); :}
+	;
+
+PartialMethodGroupDecl partial_method_group_header = 
+	 GROUP modifiers.m? type.retType name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN throws.exceptions?
+	 {: return new PartialMethodGroupDecl(new Modifiers(m), retType, "", params, exceptions, new Opt(), pattern, new List()); :};
+	
+PartialMethodGroupDecl partial_method_group_header = 
+	 GROUP modifiers.m? VOID name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN  throws.exceptions?
+	 {: return new PartialMethodGroupDecl(new Modifiers(m), new PrimitiveTypeAccess("void"), "", params, exceptions, new Opt(),  pattern, new List()); :};
+	 
+	 
+PartialMethodGroupDecl partial_method_group = 
+	partial_method_group_header.m method_blocks.l 
+	{: m.setBodyGroupList(l); return m; :};
+
+BodyDecl layer_body_declaration =
+	partial_method_group.c {: return c; :};

@@ -16,8 +16,6 @@ public class InstanceLayerActivationTransformer extends Transformer {
 	private InstanceLayerActivationGenerator gen;
 	
 	public InstanceLayerActivationTransformer(InstanceLayerActivation instaceLayerActivation){
-		//WANDER keyword debug
-		System.err.println("new instanceLayerActivationTransformer");
 		this.gen = new InstanceLayerActivationGenerator(instaceLayerActivation);
 	}
 	

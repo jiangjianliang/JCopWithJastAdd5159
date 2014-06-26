@@ -156,22 +156,6 @@ Stmt block_statement =
   {: return new LayerActivation(p, new Block(new List<Stmt>().add(s)), false); :};  
 
 //---------------------------------------------------------------------------------------------
-// instancewith(...)
-//---------------------------------------------------------------------------------------------
-Access method_invocation = 
-  INSTANCE_LAYER_ACTIVATION LPAREN argument_list.l RPAREN
-  {: return new InstanceLayerActivation(l, true); :};
-
-	
-//---------------------------------------------------------------------------------------------
-// instancewithout(...)
-//---------------------------------------------------------------------------------------------
-Access method_invocation = 
-  INSTANCE_LAYER_DEACTIVATION LPAREN argument_list.l RPAREN
-  {: return new InstanceLayerActivation(l, false); :};
-	
-	
-//---------------------------------------------------------------------------------------------
 //  <Object> with (LayerX);
 //---------------------------------------------------------------------------------------------
 Expr object_access :=

@@ -70,7 +70,10 @@ public class JCop {
 	/**
 	 * used for shielding some layer instance
 	 */
-	private static volatile WeakHashMap<Object, ArrayList<Class<Layer>>> excludeMap = new WeakHashMap<Object, ArrayList<Class<Layer>>>();
+	// private static volatile WeakHashMap<Object, ArrayList<Class<Layer>>>
+	// excludeMap = new WeakHashMap<Object, ArrayList<Class<Layer>>>();
+
+	private static volatile WeakHashMap<Object, WeakHashMap<Layer, Integer>> objectMap2 = new WeakHashMap<Object, WeakHashMap<Layer, Integer>>();
 
 	/**
 	 * WANDER 这里也是一个临界区，需要保持多线程下的一些特性
@@ -104,26 +107,68 @@ public class JCop {
 		objComposition.removeLayer(toBeRemoved);
 	}
 
-	public synchronized static void instanceResetExclude(Object obj,
-			Class<Layer> toBeRestore) {
-		ArrayList<Class<Layer>> result = excludeMap.get(obj);
-		if (obj == null) {
-			result = new ArrayList<Class<Layer>>();
-			excludeMap.put(obj, result);
+	public synchronized static void instanceWith(Layer toBeAdded,
+			Object[] instanceList, int[] noList) {
+		for (int i = 0; i < instanceList.length; i++) {
+			Object instance = instanceList[i];
+			Composition instanceComposition = objectMap.get(instance);
+			if (instanceComposition == null) {
+				instanceComposition = new Composition();
+				objectMap.put(instance, instanceComposition);
+			}
+			instanceComposition.addLayer(toBeAdded);
+
+			WeakHashMap<Layer, Integer> weakHashMap = objectMap2.get(instance);
+			if (weakHashMap == null) {
+				weakHashMap = new WeakHashMap<Layer, Integer>();
+				objectMap2.put(instance, weakHashMap);
+			}
+			weakHashMap.put(toBeAdded, noList[i]);
+
 		}
-		result.remove(toBeRestore);
 	}
 
-	public synchronized static void instanceExclude(Object obj,
-			Class<Layer> toBeExclude) {
-		ArrayList<Class<Layer>> result = excludeMap.get(obj);
-		if (obj == null) {
-			result = new ArrayList<Class<Layer>>();
-			excludeMap.put(obj, result);
+	public synchronized static void instanceWithout(Layer toBeRemoved,
+			Object[] instanceList) {
+		for (int i = 0; i < instanceList.length; i++) {
+			Object instance = instanceList[i];
+			Composition instanceComposition = objectMap.get(instance);
+			if (instanceComposition != null) {
+				instanceComposition.removeLayer(toBeRemoved);
+			}
+
+			WeakHashMap<Layer, Integer> weakHashMap = objectMap2.get(instance);
+			if (weakHashMap != null) {
+				weakHashMap.remove(toBeRemoved);
+			}
+
 		}
-		result.add(toBeExclude);
 	}
 
+	public synchronized static int getNo(Layer layer, Object target) {
+		int result = 0;
+		WeakHashMap<Layer, Integer> weakHashMap = objectMap2.get(target);
+		if (weakHashMap != null) {
+			Integer temp = weakHashMap.get(layer);
+			if (temp != null) {
+				result = temp;
+			}
+		}
+		return result;
+	}
+
+	/*
+	 * public synchronized static void instanceResetExclude(Object obj,
+	 * Class<Layer> toBeRestore) { ArrayList<Class<Layer>> result =
+	 * excludeMap.get(obj); if (obj == null) { result = new
+	 * ArrayList<Class<Layer>>(); excludeMap.put(obj, result); }
+	 * result.remove(toBeRestore); }
+	 * 
+	 * public synchronized static void instanceExclude(Object obj, Class<Layer>
+	 * toBeExclude) { ArrayList<Class<Layer>> result = excludeMap.get(obj); if
+	 * (obj == null) { result = new ArrayList<Class<Layer>>();
+	 * excludeMap.put(obj, result); } result.add(toBeExclude); }
+	 */
 	/**
 	 * WANDER 这里是个临界区，需要保持多线程下的一些特性
 	 * 
@@ -164,12 +209,12 @@ public class JCop {
 	 * @return
 	 */
 	private static List<Class<Layer>> getBlockList(Object obj) {
-		ArrayList<Class<Layer>> result = excludeMap.get(obj);
-		if (result == null) {
-			result = new ArrayList<Class<Layer>>();
-			excludeMap.put(obj, result);
-		}
-		return result;
+		/*
+		 * ArrayList<Class<Layer>> result = excludeMap.get(obj); if (result ==
+		 * null) { result = new ArrayList<Class<Layer>>(); excludeMap.put(obj,
+		 * result); } return result;
+		 */
+		return new ArrayList<Class<Layer>>();
 	}
 
 	/**

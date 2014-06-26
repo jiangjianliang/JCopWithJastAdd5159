@@ -21,12 +21,11 @@ aspect InstanceLayerActivation {
 			if(jcop.compiler.CompilerConfiguration.getInstance().astTransformationsDisabled()){
 				return super.rewriteTo();
 			}
-			else if (getArgs().numChildren() < 2){
-				//at least two parameters
-				return super.rewriteTo();
+			else if (getArgs().numChildren() == 2 && getArgs().numChildren() == 3){
+				return new jcop.transformation.InstanceLayerActivationTransformer(this).errorCheckAndTransform(hostType().compilationUnit());
 			}
 			else{
-				return new jcop.transformation.InstanceLayerActivationTransformer(this).errorCheckAndTransform(hostType().compilationUnit());
+				return super.rewriteTo();
 			}
 		}
 	}

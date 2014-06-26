@@ -3,7 +3,7 @@ aspect ContextConstraint {
     //inh boolean LayerActivationBlock.reachable();
   	//inh boolean DeclarativeLayerActivation.reachable();
 //  	eq DeclarativeLayerActivation.getLayerActivationBlock().reachable() = true;
-  	eq ContextConstraint.getLayerActivationBlock().reachable() = true;
+	eq ContextConstraint.getLayerActivationBlock().reachable() = true;
 	//eq LayerActivationBlock.reachable() = true;
 	//eq DeclarativeLayerActivation.isStatic() = true;
 	

@@ -1,0 +1,1 @@
+PartialMethodGroupDecl : PartialMethodDecl ::= BodyGroup:Block*;
