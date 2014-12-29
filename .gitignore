@@ -9,6 +9,7 @@ JCopBackend/scanner/
 #################
 ## Eclipse
 #################
+testcase/
 *.class
 tools/*.jar
 *.pydevproject
