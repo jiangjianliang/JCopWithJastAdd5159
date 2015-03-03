@@ -10,6 +10,7 @@ import AST.ExprStmt;
 import AST.List;
 import AST.MethodAccess;
 import AST.MethodDecl;
+import AST.PartialMethodGroupDecl;
 import AST.Program;
 import AST.Stmt;
 import AST.StringLiteral;
@@ -57,6 +58,7 @@ public class RunTimeLoggingGenerator extends Generator  {
 	}
 
 	public Block createBlockWithLoggingMessage(MethodDecl method, String layerName) {	  
+		if(method instanceof PartialMethodGroupDecl) return method.getBlock().fullCopy();//wander: ignore partial method group
 		Block block = method.getBlock().fullCopy();		
 		return this.genLoggingMessage(block, Msg.logAccessPartialMethod, method.getFullQualifiedName() + " in layer " + layerName);
 	}

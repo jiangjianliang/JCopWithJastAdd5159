@@ -1,1 +1,5 @@
-PartialMethodGroupDecl : PartialMethodDecl ::= BodyGroup:Block*;
+//PartialMethodGroupDecl : PartialMethodDecl ::= BodyGroup:Block*;
+
+PartialMethodGroupDecl:MethodDecl ::= 
+	NamePattern:NamePattern
+	BodyGroup:Block*;

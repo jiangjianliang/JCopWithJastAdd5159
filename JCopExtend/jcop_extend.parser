@@ -14,21 +14,21 @@ Access method_invocation =
   {: return new InstanceLayerActivation(l, false); :};
 
 
-//
-Opt method_group_body = LPAREN block.b RPAREN {: return b; :};
+//Opt method_group_body = LPAREN block.b RPAREN {: return b; :};
+Block method_group_body = LPAREN block.b RPAREN {: return b; :};
 
 List method_blocks = 
 	  method_group_body.b {: return new List().add(b); :}
-	| method_blocks.l method_group_body.b  {: l.add(b); :}
+	| method_blocks.l method_group_body.b  {: return l.add(b); :}
 	;
 
 PartialMethodGroupDecl partial_method_group_header = 
 	 GROUP modifiers.m? type.retType name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN throws.exceptions?
-	 {: return new PartialMethodGroupDecl(new Modifiers(m), retType, "", params, exceptions, new Opt(), pattern, new List()); :};
+	 {: return new PartialMethodGroupDecl(new Modifiers(m), retType, "", params, exceptions, new Opt(new Block()), pattern, new List()); :};
 	
 PartialMethodGroupDecl partial_method_group_header = 
 	 GROUP modifiers.m? VOID name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN  throws.exceptions?
-	 {: return new PartialMethodGroupDecl(new Modifiers(m), new PrimitiveTypeAccess("void"), "", params, exceptions, new Opt(),  pattern, new List()); :};
+	 {: return new PartialMethodGroupDecl(new Modifiers(m), new PrimitiveTypeAccess("void"), "", params, exceptions, new Opt(new Block()),  pattern, new List()); :};
 	 
 	 
 PartialMethodGroupDecl partial_method_group = 

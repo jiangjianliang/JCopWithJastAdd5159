@@ -180,7 +180,7 @@ public class LayerDeclTransformer extends Transformer {
 			} else
 				otherMembers.add(decl);
 		}
-		return new LayerMemberSets(partialMethods, otherMembers);
+		return new LayerMemberSets(partialMethods, partialMethodGroups, otherMembers);
 	}
 	
 	
@@ -217,8 +217,9 @@ public class LayerDeclTransformer extends Transformer {
 		
 		public LayerMemberSets(Set<MethodDecl> partialMethods,
 				Set<MethodDecl> partialMethodGroups, Set<BodyDecl> otherMembers){
-			this.partialMethods = partialMethods;
-			this.partialMethodGroups = partialMethodGroups;
+			this.partialMethods = partialMethods==null?new HashSet<MethodDecl>():partialMethods;
+			this.partialMethodGroups = partialMethodGroups==null?new HashSet<MethodDecl>():partialMethodGroups;
+			//XXX 这里不会出现null值, 参见#collectPartialMethods,还是 有问题
 			this.otherMembers = otherMembers;
 		}
 

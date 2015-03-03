@@ -53,7 +53,7 @@ public class PartialMethodGroupGenerator extends LayeredMethodGenerator {
 	}
 
 	/**
-	 * AAA()
+	 * AAA() not AAA0()
 	 * AAA1()
 	 * AAA2()
 	 * @return
@@ -67,7 +67,7 @@ public class PartialMethodGroupGenerator extends LayeredMethodGenerator {
 			MethodDecl partialMethod = this.partialMethod;
 			Modifiers modif = createPublicModifierFor(partialMethod);
 			modif.addModifier(genAnnotation(PARTIAL_METHOD_ANNOTATION));
-			MethodDecl newMethod;
+			MethodDecl newMethod = null;
 			if (i == 0) {
 				newMethod = new MethodDecl(modif, (Access) partialMethod
 						.getTypeAccess().fullCopy(), partialMethod.getID(),

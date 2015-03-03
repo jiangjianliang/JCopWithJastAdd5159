@@ -145,11 +145,11 @@ public class JCop {
 		}
 	}
 
-	public synchronized static int getNo(Layer layer, Object target) {
+	public synchronized static int getNo(Layer someLayer, Object target) {
 		int result = 0;
 		WeakHashMap<Layer, Integer> weakHashMap = objectMap2.get(target);
 		if (weakHashMap != null) {
-			Integer temp = weakHashMap.get(layer);
+			Integer temp = weakHashMap.get(someLayer);
 			if (temp != null) {
 				result = temp;
 			}
