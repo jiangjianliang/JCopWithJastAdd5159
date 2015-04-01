@@ -1,0 +1,82 @@
+﻿/**
+ * Jiang, Jianliang
+ * 2015-1-12
+ */
+aspect ClassHierarchyAnalysis{
+	/*
+	//hierarchy_type(C) = {C} && hierarchy_type(direct_subclass(C))
+	syn Set<ClassDecl> ClassDecl.hierarchyType() circular [new HashSet<ClassDecl>()];
+
+	eq ClassDecl.hierarchyType(){
+		HashSet<ClassDecl> result = new HashSet<ClassDecl>();
+		result.add(this);
+		for(ClassDecl subClass: directSubclass()){
+			result.addAll(subClass.hierarchyType());
+		}
+		return result;
+	}
+	//direct_subclass(C) = any class extends C
+	coll Set<ClassDecl> ClassDecl.directSubclass() [new HashSet<ClassDecl>()] with add;
+	
+	ClassDecl contributes this 
+		when hasSuperclass() && superclass() != null 
+		to ClassDecl.directSubclass() 
+		for superclass();
+
+	//hierarchy_type(I) = hierarchy_type(implements(I)) && hierarchy_type(direct_subinterface(I))
+	syn Set<ClassDecl> InterfaceDecl.hierarchyType() circular [new HashSet<ClassDecl>()];
+	
+	eq InterfaceDecl.hierarchyType(){
+		HashSet<ClassDecl> result = new HashSet<ClassDecl>();
+		for(ClassDecl c: implementedBy() ){
+			result.addAll(c.hierarchyType());
+		}
+		
+		for(InterfaceDecl i: extendedBy() ){
+			result.addAll(i.hierarchyType());
+		}
+			return result;
+	}
+	
+	//implements(I) = any class implements I
+	coll Set<ClassDecl> InterfaceDecl.implementedBy() [new HashSet<ClassDecl>()] with add;
+
+	ClassDecl contributes this
+		when getNumImplements() != 0 
+		to InterfaceDecl.implementedBy()
+		for each directImplementedInterfaces();
+	
+	//direct_subinterface(I) = any interface extends I
+	coll Set<InterfaceDecl> InterfaceDecl.extendedBy() [new HashSet<InterfaceDecl>()] with add;
+
+	InterfaceDecl contributes this
+		when directImplementedInterfaces().size() != 0 //TBD
+		to InterfaceDecl.extendedBy()
+		for each directImplementedInterfaces();
+	
+	//directImplents(C/I)
+	syn lazy HashSet TypeDecl.directImplementedInterfaces() = new HashSet();
+
+	eq ClassDecl.directImplementedInterfaces() {
+		HashSet set = new HashSet();
+		//if(hasSuperclass())  set.addAll(superclass().implementedInterfaces());
+		for(Iterator iter = interfacesIterator(); iter.hasNext(); ) {
+			InterfaceDecl decl = (InterfaceDecl)iter.next();
+			set.add(decl);
+			//set.addAll(decl.implementedInterfaces());
+		}
+		return set;
+	}
+	
+	eq InterfaceDecl.directImplementedInterfaces() {
+		HashSet set= new HashSet();
+		//set.addAll(typeObject().implementedInterfaces());
+		for(Iterator iter = superinterfacesIterator(); iter.hasNext(); ) {
+			InterfaceDecl decl = (InterfaceDecl)iter.next();
+			set.add(decl);
+			//set.addAll(decl.implementedInterfaces());
+		}
+		return set;
+	}
+	*/
+}

@@ -1,0 +1,14 @@
+﻿//call graph
+/*
+abstract SuperNode : Program;
+
+CGRoot : SuperNode ::=  <Program:Program>;
+
+CGNode : SuperNode ::=  <MethodDecl:MethodDecl>;
+
+CGCallee : SuperNode ::= <MethodAccess:MethodAccess>;
+*/
+
+CGRoot;
+CGNode;
+CGCallee;
