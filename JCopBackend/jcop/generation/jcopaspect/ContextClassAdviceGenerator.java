@@ -9,8 +9,12 @@ import jcop.generation.jcopaspect.internal.SourceCodeBuffer;
 
 import org.aspectj.weaver.patterns.IfPointcut;
 
+import AST.AndPointcutExpr;
+import AST.CallPointcutExpr;
 import AST.ContextDecl;
+import AST.ExecutionPointcutExpr;
 import AST.IfPointcutExpr;
+import AST.OrPointcutExpr;
 import AST.PointcutExpr;
 import AST.Program;
 
@@ -149,9 +153,30 @@ class ContextClassAdviceGenerator extends AdviceGenerator {
 	 * @return
 	 */
 	private CharSequence generatePointcut(PointcutExpr pointcut) {
-		if (pointcut.getClass() == IfPointcutExpr.class)
+		if (pointcut.getClass() == IfPointcutExpr.class){
 			return layeredMethodExecution;
-		else
-			return pointcut.toString();
+		}else if(pointcut.getClass() == AndPointcutExpr.class){
+			return generatePointcut((AndPointcutExpr)pointcut);
+		}else if(pointcut.getClass() == OrPointcutExpr.class){
+			return generatePointcut((OrPointcutExpr)pointcut);
+		}else{
+			return pointcut.toString();			
+		}
+	}
+	
+	private CharSequence generatePointcut(AndPointcutExpr pointcut){
+		return "( "+generatePointcut(pointcut.getLhs())+" && "+
+		generatePointcut(pointcut.getRhs())+" )";
+	}
+	
+	private CharSequence generatePointcut(OrPointcutExpr pointcut){
+		String lhs = pointcut.getLhs().toString();
+		String rhs = pointcut.getRhs().toString();
+		String execKey = "execution";
+		if(lhs.contains(execKey) && rhs.contains(execKey)){
+			return "( ("+lhs+" && !cflow("+rhs+")) || "
+					+ "( "+rhs+" && !cflow("+lhs+")) )";
+		}
+		return pointcut.toString();
 	}
 }

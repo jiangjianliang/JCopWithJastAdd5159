@@ -1,0 +1,433 @@
+ï»¿/**
+ * Jiang, Jianliang
+ * 2015-1-15
+ */
+
+aspect CallGraphConstruction{
+	
+	syn CGRoot Program.getCGRoot() {
+		CGRoot root	= new CGRoot();
+		//root.setProgram(this);
+		return root;
+	}
+	
+	syn CGNode MethodDecl.getCGNode() {
+		CGNode node = new CGNode();
+		//node.setMethodDecl(this);
+		return node;
+	}
+	
+	syn CGCallee MethodAccess.getCGCallee(){
+		CGCallee callee = new CGCallee();
+		return callee;
+	}
+	
+	inh Program CGRoot.cgProgram();
+	eq Program.getCGRoot().cgProgram() = this;
+	
+	inh MethodDecl CGNode.cgMethodDecl();
+	eq MethodDecl.getCGNode().cgMethodDecl() = this;
+	
+	inh MethodAccess CGCallee.cgMethodAccess();
+	eq MethodAccess.getCGCallee().cgMethodAccess() = this;
+	
+	//---------------call graph edges
+	syn List CGRoot.CGNodes(){
+		List l = new List();
+		for(Iterator iter = cgProgram().starter().iterator(); iter.hasNext();){
+			l.add(((MethodDecl)iter.next()).getCGNode());
+		}
+		return l;
+	}
+	
+	syn List CGNode.CGCallees(){
+		List l = new List();
+		for(Iterator iter = cgMethodDecl().callees().iterator(); iter.hasNext();){
+			//CGCallee cgCallee = new CGCallee();
+			//cgCallee.setMethodAccess((MethodAccess)iter.next());
+			//l.add(cgCallee);
+			l.add(((MethodAccess)iter.next()).getCGCallee());
+		}
+		return l;
+	}
+	
+	syn List CGCallee.CGEdges() {
+		List l = new List();
+		for(Iterator iter = cgMethodAccess().decls().iterator(); iter.hasNext(); ){
+			l.add(((MethodDecl)iter.next()).getCGNode());
+		}
+		return l;
+	}
+	//---------------
+	
+	
+	
+	//Proram.starter() attritute to get thread start methods:static void main and  void run method
+	syn SimpleSet Program.starter(){
+		SimpleSet result = SimpleSet.emptySet;
+		for(CompilationUnit unit : getCompilationUnitList()){
+			result = result.add(unit.starter());
+		}
+		return result;
+	}
+	
+	syn SimpleSet CompilationUnit.starter(){
+		SimpleSet result = SimpleSet.emptySet;
+		for(TypeDecl type: getTypeDeclList()){
+			result = result.add(type.starter());
+		}
+		return result;
+	}
+	
+	syn SimpleSet TypeDecl.starter() = SimpleSet.emptySet;
+	
+	eq ClassDecl.starter(){
+		SimpleSet result = SimpleSet.emptySet;
+		for(BodyDecl body : getBodyDeclList()){
+			if( body instanceof MethodDecl && body.isStarter() ){//MethodDecl.isStarter attribute
+				result = result.add(body);
+			} else if( body instanceof MemberClassDecl){
+				result = result.add(((MemberClassDecl)body).getClassDecl().starter());
+			}
+		}
+		return result;
+	}
+	
+	//interface can have inner class? [TBD]
+	eq InterfaceDecl.starter(){
+		SimpleSet result = SimpleSet.emptySet;
+		for(BodyDecl body : getBodyDeclList()){
+			if( body instanceof MemberClassDecl){
+				result = result.add(((MemberClassDecl)body).getClassDecl().starter());
+			}
+		}
+		return result;
+	}
+	
+	syn boolean BodyDecl.isStarter() = false;
+	
+	eq MethodDecl.isStarter(){
+		if(isAbstract()){
+			return false;
+		}
+		//public static void main()
+		//String[] maybe wrong [TBD]
+		if(isPublic() && isStatic() && signature().equals("main(java.lang.String[])") ){
+			Access returnValue = getTypeAccess();
+			if(returnValue instanceof PrimitiveTypeAccess
+			  && ((PrimitiveTypeAccess)returnValue).getName().equals("void") ){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		//public void run() && hosttype() implements Runnable
+		if(isPublic() && !isStatic() &&signature().equals("run()") ){
+			Access returnValue = getTypeAccess();
+			if(returnValue instanceof PrimitiveTypeAccess
+			  && ((PrimitiveTypeAccess)returnValue).getName().equals("void") )
+			{
+				if(hostType().instanceOf(lookupType("java.lang", "Runnable"))){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+	//MethodDecl.callees() to get all MethodAccess within MethodDecl
+	syn SimpleSet MethodDecl.callees(){
+		//±éÀúMethodDeclµÄËùÓÐÓï¾ä¿é£¬µÃµ½ÆäÖÐµÄMethodAccess
+		//ÕÒµ½ËùÓÐ¿ÉÄÜº¬ÓÐMethodAccessµÄ½Úµã
+		SimpleSet s = SimpleSet.emptySet;
+		if(hasBlock()){
+			//filter some invalid MethodAccess? TODO  3-2
+			s = s.add(getBlock().callees());
+			return s;
+		}else{
+			return s;
+		}
+	}
+	
+	syn SimpleSet Block.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(Stmt stmt: getStmtList()){
+			s = s.add(stmt.callees());
+		}
+		return s;
+	}
+	
+	//-------------Stmt-----------
+	syn SimpleSet Stmt.callees(){return SimpleSet.emptySet;}
+	
+	eq TryStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getBlock().callees());
+		for(CatchClause catchClause : getCatchClauseList()){
+			s = s.add(catchClause.callees());
+		}
+		if(hasFinally()){
+			s = s.add(getFinally().callees());
+		}
+		return s;
+	}
+	
+	syn SimpleSet CatchClause.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getBlock().callees());
+		return s;
+	}
+	
+	eq ReturnStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		if(hasResult()){
+			s = s.add(getResult().callees());
+		}
+		return s;
+	}
+	
+	eq IfStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getCondition().callees());
+		s = s.add(getThen().callees());
+		if(hasElse()){
+			s = s.add(getElse().callees());
+		}
+		return s;
+	}
+	
+	eq LabeledStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getStmt().callees());
+		return s;
+	}
+	
+	eq SwitchStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		s = s.add(getBlock().callees());
+		return s;
+	}
+	
+	syn SimpleSet Case.callees() = SimpleSet.emptySet;
+	
+	eq ForStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(Stmt stmt: getInitStmtList()){
+			s = s.add(stmt.callees());
+		}
+		if(hasCondition()){
+			s = s.add(getCondition().callees());
+		}
+		for(Stmt stmt: getUpdateStmtList()){
+			s = s.add(stmt.callees());
+		}
+		s = s.add(getStmt().callees());
+		return s;
+	}
+	
+	eq WhileStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getCondition().callees());
+		s = s.add(getStmt().callees());
+		return s;
+	}
+	
+	eq DoStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getStmt().callees());
+		s = s.add(getCondition().callees());
+		return s;
+	}
+	
+	eq SynchronizedStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		s = s.add(getBlock().callees());
+		return s;
+	}
+	
+	eq ThrowStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	eq ExprStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	eq VariableDeclaration.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		if(hasInit()){
+			s = s.add(getInit().callees());
+		}
+		return s;
+	}
+	
+	eq VarDeclStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(VariableDecl varDecl: getVariableDeclList()){
+			if(varDecl.hasInit()){			
+				s = s.add(varDecl.getInit().callees());
+			}
+		}
+		return s;
+	}
+	
+	//EnhancedForStmt
+	eq EnhancedForStmt.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getVariableDeclaration().callees());
+		s = s.add(getExpr().callees());
+		s = s.add(getStmt().callees());
+		return s;
+	}
+	
+	
+	//-------------Expr-----------
+	
+	syn SimpleSet Expr.callees()=SimpleSet.emptySet;
+	
+	eq ArrayInit.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(Expr init: getInitList()){
+			s = s.add(init.callees());
+		}
+		return s;
+	}
+	
+	eq AssignExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getDest().callees());
+		s = s.add(getSource().callees());
+		return s;
+	}
+	
+	eq Unary.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getOperand().callees());
+		return s;
+	}
+	
+	eq Binary.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getLeftOperand().callees());
+		s = s.add(getRightOperand().callees());
+		return s;
+	}
+	
+	eq CastExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getTypeAccess().callees());
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	eq InstanceOfExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		s = s.add(getTypeAccess().callees());
+		return s;
+	}
+	
+	eq ConditionalExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getCondition().callees());
+		s = s.add(getTrueExpr().callees());
+		s = s.add(getFalseExpr().callees());
+		return s;
+	}
+	
+	eq ArrayCreationExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getTypeAccess().callees());
+		if(hasArrayInit()){
+			s = s.add(getArrayInit().callees());
+		}
+		return s;
+	}
+	
+	eq ParExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	//------------Access----------
+	syn SimpleSet Access.callees()=SimpleSet.emptySet;
+	
+	eq MethodAccess.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(this);
+		for(Expr expr: getArgList()){
+			s = s.add(expr.callees());
+		}
+		return s;
+	}
+	
+	eq ClassInstanceExpr.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(Expr expr : getArgList()){
+			s = s.add(expr.callees());
+		}
+		return s;
+	}
+	
+	eq AbstractDot.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getLeft().callees());
+		s = s.add(getRight().callees());
+		return s;
+	}
+	
+	eq ConstructorAccess.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		for(Expr expr : getArgList()){
+			s = s.add(expr.callees());
+		}
+		return s;
+	}
+	
+	eq ArrayAccess.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	eq ArrayTypeAccess.callees(){
+		SimpleSet s  = SimpleSet.emptySet;
+		s = s.add(getAccess().callees());
+		return s;
+	}
+	
+	eq ArrayTypeWithSizeAccess.callees(){
+		SimpleSet s = SimpleSet.emptySet;
+		s = s.add(getExpr().callees());
+		return s;
+	}
+	
+	
+	
+}
+
+
+/**
+ * @deprecated
+ * 2015-1-20
+ * 
+
+aspect SpecialClassesForCG{
+	
+	syn lazy TypeDecl Program.typeRunnable() = lookupType("java.lang", "Runnable");	
+	
+	eq Program.getChild().typeRunnable() = typeRunnable();
+	
+	inh lazy TypeDecl TypeDecl.typeRunnable();
+	
+}
+ */
