@@ -1,0 +1,24 @@
+//CompositeLayerDecl
+ClassDecl class_declaration = composite_layer_decl.c {: return c; :};
+
+CompositeLayerDecl composite_layer_decl = 
+	modifiers.m CLAYER IDENTIFIER super.s? composite_layer_body.b 
+	{: return new CompositeLayerDecl(/*implements*/new List(), new Modifiers(m), IDENTIFIER, s, b); :};
+
+BodyDecl class_body_declaration = open_composite_layer_declaration.c {: return c; :};
+
+//OpenCompositeLayerDecl
+OpenCompositeLayerDecl open_composite_layer_declaration =
+    CLAYER IDENTIFIER composite_layer_body.b{: return new OpenCompositeLayerDecl(IDENTIFIER, b); :}
+	;
+List composite_layer_body =
+    LBRACE composite_rule_list.l RBRACE     {: return l; :}
+	| LBRACE RBRACE							{: return new List(); :}
+	;
+List composite_rule_list =
+    composite_rule.c                     {: return new List().add(c); :}
+    | composite_rule_list.l composite_rule.c   {: return l.add(c); :}
+	;
+CompositeRuleDecl composite_rule=
+    simple_name.f COLON class_instance_creation_expression.e  SEMICOLON            {: return new CompositeRuleDecl(f, e); :}
+	;

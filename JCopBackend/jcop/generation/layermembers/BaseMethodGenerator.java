@@ -200,7 +200,13 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 	 * (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
 	 * </code>
 	 * </pre>
-	 * 
+	 * replaced with
+	 * <pre>
+	 * <code>
+	 * __composition__.firstLayer().get(this).{@code <delegationMethodName>}
+	 * (<targetArgs>, __composition__.firstLayer(), __composition__, {@code <oldArgs>});
+	 * </code>
+	 * </pre>
 	 * @return
 	 */
 	private Expr createFirstLayerAccess() {
@@ -209,7 +215,7 @@ public class BaseMethodGenerator extends LayeredMethodGenerator {
 		Dot concreteLayerWithParams = new VarAccess(ID.composition)
 				.qualifiesAccess(createMethodAccess(ID.firstLayer)
 						.qualifiesAccess(
-								createMethodAccess("get").qualifiesAccess(
+								createMethodAccess("get", new ThisAccess()).qualifiesAccess(
 										createMethodAccess(
 												delegationMethodName, args))));
 		return concreteLayerWithParams;

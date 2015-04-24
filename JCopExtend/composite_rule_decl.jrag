@@ -1,0 +1,11 @@
+aspect CompositeRuleDecl{
+	
+
+	public void CompositeRuleDecl.toString(StringBuffer s){
+		s.append(indent());
+		getTarget().toString(s);
+		s.append(":");
+		getLayerIns().toString(s);
+		s.append(";\n");
+	}
+}

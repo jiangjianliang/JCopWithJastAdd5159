@@ -1,0 +1,42 @@
+aspect CompositeLayerDecl{
+	
+	//see layer_decl.jrag 
+	eq CompositeLayerDecl.getModifiers().mayBeStaticActive() = false;
+	
+	rewrite CompositeLayerDecl{
+		to ASTNode {
+			//jcop.compiler.JCopCompiler.setInstanceLayerExits(true);
+			boolean noTransformations = jcop.compiler.CompilerConfiguration.getInstance().astTransformationsDisabled();	
+			if(isTopLevelType()){
+				jcop.transformation.CompositeLayerDeclTransformer compositeLayerTransformer = new jcop.transformation.CompositeLayerDeclTransformer(this);
+				
+				if(noTransformations){
+					return super.rewriteTo();
+				}else{
+					return compositeLayerTransformer.errorCheckAndTransform(hostType().compilationUnit());
+				}
+			}else{
+				throw new RuntimeException("Composite Layer Decl is not Toplevel...");
+			}
+		}
+	}
+	
+	public ClassDecl CompositeLayerDecl.hostLayer(){
+		return this;
+	}
+	
+	@Override
+	public void CompositeLayerDecl.toString(StringBuffer s){
+		s.append("clayer ");
+		s.append(getID());
+		if(hasSuperClassAccess()){
+			s.append("extends");
+			getSuperClassAccess().toString(s);
+		}
+		s.append(" {");    	
+    	for (BodyDecl bodyDecl : getBodyDecls())
+    		bodyDecl.toString(s);
+    	s.append("}\n");
+	}
+	
+}

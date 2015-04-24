@@ -1,0 +1,37 @@
+aspect OpenCompositeLayerDecl{
+	//hostType()属性是否需要定义
+	//inh TypeDecl OpenCompositeLayerDecl.hostType();
+	
+	//Modifier.jrag:200 isStatic
+	eq OpenCompositeLayerDecl.isStatic() = false;
+	
+	rewrite OpenCompositeLayerDecl{
+		to ASTNode{
+			if(jcop.compiler.CompilerConfiguration.getInstance().astTransformationsDisabled())
+				return super.rewriteTo();
+			/*
+			else if (jcop.VisitedNodes.firstVisit(this))
+				return new jcop.transformation.ProceedTransformer(this).errorCheckAndTransform(hostType().compilationUnit());	
+			*/
+			else {
+				return new jcop.transformation.OpenCompositeLayerDeclTransformer(this).errorCheckAndTransform(hostType().compilationUnit());
+			}
+		}
+	}
+	
+	public ClassDecl OpenCompositeLayerDecl.hostLayer() {
+		return (ClassDecl)lookupType(getID()).iterator().next();
+	}
+	
+	
+	public void OpenCompositeLayerDecl.toString(StringBuffer s){
+		s.append("clayer ");
+		s.append(getID());
+		s.append(" {");
+		for(CompositeRuleDecl ruleDecl: getCompositeRuleDeclList()){
+			ruleDecl.toString(s);
+		}
+		s.append(" }\n");
+	}
+	
+}

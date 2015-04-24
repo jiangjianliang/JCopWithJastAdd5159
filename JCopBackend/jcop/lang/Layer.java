@@ -224,5 +224,10 @@ public class Layer {
 	public void checkExcludes(Composition composition) {
 		// ...
 	}
+	
+	//by wander, for CompositeLayer
+	public boolean match(Object target) {
+		return false;
+	}
 
 }

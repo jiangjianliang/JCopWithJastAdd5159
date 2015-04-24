@@ -39,7 +39,8 @@ public class Globals {
 	public static final String jcopHome = "%JCOP_HOME%";
 	public static final String jcopJar = "jcop.jar";
 
-	public static String jcopFilesSrcFolder = "src";
+	//public static String jcopFilesSrcFolder = "src";
+	public static String jcopFilesSrcFolder = "JCopBackend";
 	public static final String jcopFilesDestFolder = "jcop" + File.separator
 			+ "lang";
 	public static final String contextjFilesFolder = "contextj_classes";

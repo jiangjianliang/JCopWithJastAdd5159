@@ -11,6 +11,7 @@ import AST.List;
 import AST.MethodDecl;
 import AST.ParameterDeclaration;
 import AST.ThisAccess;
+import AST.TypeAccess;
 import AST.VarAccess;
 
 /**
@@ -106,7 +107,12 @@ public class ConcreteLayerClassGenerator extends LayerClassGenerator {
 	 *   __composition__.nextLayer(__proxy__).get().{@code <generatedName>}({@code <argsWithTarget>})
 	 * </code>
 	 * </pre>
-	 * 
+	 * replaced with
+	 * <pre>
+	 * <code>
+	 *   __composition__.nextLayer(__proxy__).get(target).{@code <generatedName>}({@code <argsWithTarget>})
+	 * </code>
+	 * </pre>
 	 * @param generatedMethodName
 	 * @param argsWithTarget
 	 * @return
@@ -114,7 +120,7 @@ public class ConcreteLayerClassGenerator extends LayerClassGenerator {
 	private Expr genCallToNextLayerExpression(String generatedMethodName,
 			List<? extends Expr> argsWithTarget) {
 		return genNextLayerProxyAccess().qualifiesAccess(
-				createMethodAccess("get").qualifiesAccess(
+				createMethodAccess("get", new VarAccess(ID.targetParameterName)).qualifiesAccess(
 						createMethodAccess(generatedMethodName,
 								(List<Expr>) argsWithTarget)));
 	}

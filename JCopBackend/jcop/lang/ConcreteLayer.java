@@ -27,17 +27,13 @@ package jcop.lang;
 
 public class ConcreteLayer extends Layer {
 
-	
 	public ConcreteLayer() {
 		super();
-		
-	}
 
+	}
 
 	public String getName() {
 		return "ConcreteLayer";
 	}
 
 }
-
-	

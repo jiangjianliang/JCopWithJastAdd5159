@@ -61,6 +61,13 @@ public class ProceedGenerator extends Generator {
 	 * jcop.lang.JCop.current().next(__proxy__).get().{@code <methodName>}({@code <mergedArgs>)
 	 * </code>
 	 * </pre>
+	 * replaced with
+	 * <pre>
+	 * <code>
+	 * jcop.lang.JCop.current().next(__proxy__).get(this).{@code <methodName>}({@code <mergedArgs>)
+	 * </code>
+	 * </pre>
+	 * 
 	 * 
 	 * @return
 	 */
@@ -71,7 +78,7 @@ public class ProceedGenerator extends Generator {
 		List<Expr> mergedArgs = mergeProceedArgs(enclMethodArgs,
 				proceed.getArgList());
 		return createNextLayerMethodAccess().qualifiesAccess(
-				createMethodAccess("get").qualifiesAccess(
+				createMethodAccess("get", new ThisAccess()).qualifiesAccess(
 						createMethodAccess(methodName, mergedArgs)));
 	}
 

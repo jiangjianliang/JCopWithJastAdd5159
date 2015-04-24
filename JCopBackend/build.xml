@@ -20,6 +20,9 @@
 <property name="Java1.5Frontend" value="../Java1.5Frontend"/>
 <!-- location of Java1.5Backend -->
 <property name="Java1.5Backend" value="../Java1.5Backend"/>
+<!-- location of JCop extension-->
+<property name="JCopExtend" value="../JCopExtend"/>
+
 <!-- "package" is the directory where generated files will be stored -->
 <property name="package" value="AST"/>
 
@@ -84,7 +87,11 @@
 			<include name="**/*.jrag"/>
 			<include name="**/*.jadd"/>
 		</fileset>
-
+		<fileset dir="${JCopExtend}">
+			<include name="**/*.ast"/>
+			<include name="**/*.jrag"/>
+			<include name="**/*.jadd"/>
+		</fileset>
   </jastadd>
   <!-- copy library files-->
   <copy todir="beaver" preservelastmodified="true">
@@ -114,6 +121,10 @@
 		<!--JCOP related-->
 		<filelist dir =".">
 			<file name="jcop.flex"/>
+		</filelist>
+		<!--JCOP Extend related-->
+		<filelist dir="${JCopExtend}">
+			<file name="compositelayer.flex"/>
 		</filelist>
 		<filelist dir="${Java1.5Frontend}">
 			<file name="java15keywords.flex"/>
@@ -160,6 +171,10 @@
 			<fileset dir=".">
 				<include name="*.parser"/>
 			</fileset>
+			<!--JCOP Extend related-->
+			<filelist dir="${JCopExtend}">
+				<file name="compositelayer.parser"/>
+			</filelist>
 	</concat>
 	<!-- generate the parser phase 2, translating .lalr to .beaver -->
 		<java classpath="${tools}/JastAddParser.jar:${tools}/beaver-rt.jar" classname="Main" fork="true">

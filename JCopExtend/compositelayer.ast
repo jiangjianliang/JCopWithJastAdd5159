@@ -1,0 +1,5 @@
+CompositeLayerDecl : ClassDecl ::= Modifiers <ID:String> [SuperClassAccess:Access] BodyDecl*;
+
+OpenCompositeLayerDecl : MemberDecl ::= <ID:String> CompositeRuleDecl*;
+
+CompositeRuleDecl ::= Target:Access  LayerIns:Expr;
