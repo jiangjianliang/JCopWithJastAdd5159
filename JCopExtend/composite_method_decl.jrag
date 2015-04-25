@@ -1,0 +1,61 @@
+aspect CompositeMethoDecl{
+	//VariableDeclaration.jrag 71-73
+	eq CompositeMethodDecl.getParameter().isMethodParameter() = true;
+	eq CompositeMethodDecl.getParameter().isConstructorParameter() = false;
+	eq CompositeMethodDecl.getParameter().isExceptionHandlerParameter() = false;
+	
+	//TypeAnalysis.jrag:270
+	syn lazy TypeDecl CompositeMethodDecl.type() = getTypeAccess().type();//maybe wrong here
+	syn boolean CompositeMethodDecl.isVoid() = type().isVoid();
+	
+	
+	public String CompositeMethodDecl.signature() {    	
+    	StringBuffer s = new StringBuffer();
+    	String name = getNamePattern().toString();    	
+    	name = name.substring(name.lastIndexOf(".") + 1);    	
+    	s.append(name);
+    	s.append("(");
+    	for(int i = 0; i < getNumParameter(); i++) {
+    		if(i != 0) s.append(", ");
+    	    s.append(getParameter(i).type().erasure().typeName());//TODO may cause error
+    	}
+        s.append(")");    	  			
+  		return s.toString();
+  	}
+	
+	public String CompositeMethodDecl.getID() {	
+    	String fqn = getNamePattern().toString();
+    	String id = fqn.substring(fqn.lastIndexOf(".") + 1);
+    	return id;	      	
+    }
+
+	public String CompositeMethodDecl.name() {
+	  	return getNamePattern().toString();
+	}
+	
+	@Override
+	public void CompositeMethodDecl.toString(StringBuffer s){
+		s.append(indent());
+		getModifiers().toString(s);
+		getTypeAccess().toString(s);
+		s.append(" ");
+		getNamePattern().toString(s);
+		if(getNumParameter() > 0) {
+			getParameter(0).toString(s);
+			for(int i = 1; i < getNumParameter(); i++) {
+				s.append(", ");
+				getParameter(i).toString(s);
+			}
+		}
+		s.append(")");
+		if(getNumException() > 0) {
+			s.append(" throws ");
+			getException(0).toString(s);
+			for(int i = 1; i < getNumException(); i++) {
+				s.append(", ");
+				getException(i).toString(s);
+			}
+		}
+		s.append(";\n");
+	}
+}

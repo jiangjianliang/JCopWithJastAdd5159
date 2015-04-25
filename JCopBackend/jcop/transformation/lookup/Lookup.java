@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import jcop.Globals.Msg;
 import AST.BodyDecl;
 import AST.ClassDecl;
+import AST.CompositeMethodDecl;
 import AST.ImportDecl;
 import AST.LayerDecl;
 import AST.LayerDeclaration;
@@ -24,8 +25,12 @@ public class Lookup {
 
 	private static Hashtable<MethodDecl, MethodDecl> baseMethods;
 
+	//for composite method
+	private static Hashtable<CompositeMethodDecl, MethodDecl> compToBaseMethods;
+	
 	static {
 		baseMethods = new Hashtable<MethodDecl, MethodDecl>();
+		compToBaseMethods = new Hashtable<CompositeMethodDecl, MethodDecl>();
 	}
 
 	public static void setBaseForPartialMethod(MethodDecl originalMethod,
@@ -34,6 +39,64 @@ public class Lookup {
 		baseMethods.put(originalMethod, originalMethod);
 	}
 
+	/**
+	 * look for corresponding base method for partial method
+	 * 
+	 * @param cmd
+	 * @return
+	 */
+	public static MethodDecl lookupMethodCorrespondingTo(CompositeMethodDecl cmd) {
+		try {
+			ClassDecl host = (ClassDecl) cmd.hostType();
+			return lookupMethodCorrespondingTo(host, cmd);
+		} catch (Exception e) {
+			System.err.println("Error: cannot lookup method corresponding to "
+					+ cmd.getNamePattern().toString());
+			return null;
+		}
+	}
+	
+	/**
+	 * find and store mapping from partial method to base method into
+	 * baseMethods
+	 * 
+	 * @param host
+	 * @param cmd
+	 * @return
+	 */
+	private static MethodDecl lookupMethodCorrespondingTo(ClassDecl host,
+			CompositeMethodDecl cmd) {
+		MethodDecl baseMethod = findBaseMethod(host, cmd);
+		
+		if (!compToBaseMethods.contains(cmd) && baseMethod != null)
+			compToBaseMethods.put(cmd, baseMethod);
+		return compToBaseMethods.get(cmd);
+	}
+	
+	/**
+	 * look for base method of partial method in the host class first, then in
+	 * supper class and so on
+	 * 
+	 * @param host
+	 * @param cmd
+	 * @return
+	 */
+	private static MethodDecl findBaseMethod(ClassDecl host, CompositeMethodDecl cmd) {
+
+		String signatureOfPartialMethod = cmd.signature();
+		for (BodyDecl bodyDecl : host.getBodyDeclListNoTransform()) {
+			if (bodyDecl instanceof MethodDecl) {
+				String signature = ((MethodDecl) bodyDecl).signature();
+				if (signature.equals(signatureOfPartialMethod)) {
+					return (MethodDecl) bodyDecl;
+				}
+			}
+		}
+		if (host.superclass() != null)
+			return lookupMethodCorrespondingTo(host.superclass(), cmd);
+		return null;
+	}
+	
 	/**
 	 * look for corresponding base method for partial method
 	 * 

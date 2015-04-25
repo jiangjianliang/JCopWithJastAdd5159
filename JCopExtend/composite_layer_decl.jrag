@@ -1,7 +1,11 @@
 aspect CompositeLayerDecl{
 	
-	//see layer_decl.jrag 
+	
+	//layer_decl.jrag 
 	eq CompositeLayerDecl.getModifiers().mayBeStaticActive() = false;
+	
+	//TODO composite_member_delc.jrag:3
+	eq CompositeLayerDecl.getCompositeMemberDecl().hostType() = null;
 	
 	rewrite CompositeLayerDecl{
 		to ASTNode {
@@ -34,8 +38,8 @@ aspect CompositeLayerDecl{
 			getSuperClassAccess().toString(s);
 		}
 		s.append(" {");    	
-    	for (BodyDecl bodyDecl : getBodyDecls())
-    		bodyDecl.toString(s);
+    	//for (BodyDecl bodyDecl : getBodyDecls())
+    	//	bodyDecl.toString(s);
     	s.append("}\n");
 	}
 	

@@ -5,6 +5,9 @@ aspect OpenCompositeLayerDecl{
 	//Modifier.jrag:200 isStatic
 	eq OpenCompositeLayerDecl.isStatic() = false;
 	
+	//composite_member_delc.jrag:3 hostType
+	eq OpenCompositeLayerDecl.getCompositeMemberDecl().hostType() = hostType();
+	
 	rewrite OpenCompositeLayerDecl{
 		to ASTNode{
 			if(jcop.compiler.CompilerConfiguration.getInstance().astTransformationsDisabled())
@@ -28,8 +31,8 @@ aspect OpenCompositeLayerDecl{
 		s.append("clayer ");
 		s.append(getID());
 		s.append(" {");
-		for(CompositeRuleDecl ruleDecl: getCompositeRuleDeclList()){
-			ruleDecl.toString(s);
+		for(CompositeMemberDecl memberDecl: getCompositeMemberDeclList()){
+			memberDecl.toString(s);
 		}
 		s.append(" }\n");
 	}

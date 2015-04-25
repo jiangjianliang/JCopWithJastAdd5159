@@ -7,6 +7,17 @@ aspect Interfaces {
 	  ParameterDeclaration implements Typed;
 	  Access implements Typed;
 	  
+	  interface CompositeLayerDeclaration{
+		  public String getID();
+		  public TypeDecl hostType();
+		  public ClassDecl hostLayer();
+		  public List<CompositeMemberDecl> getCompositeMemberDecls();
+		  public String getFullQualifiedName();
+	  }
+	  //CompositeLayerDecl implements CompositeLayerDeclaration;
+	  
+	  OpenCompositeLayerDecl implements CompositeLayerDeclaration;
+	  
 	  interface LayerDeclaration {
 		  public String getID();
 		  public TypeDecl hostType();

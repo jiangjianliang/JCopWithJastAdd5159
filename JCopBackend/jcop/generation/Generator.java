@@ -14,6 +14,7 @@ import AST.Access;
 import AST.Annotation;
 import AST.Block;
 import AST.ClassInstanceExpr;
+import AST.CompositeMethodDecl;
 import AST.Expr;
 import AST.ExprStmt;
 import AST.FieldDeclaration;
@@ -72,6 +73,23 @@ public class Generator {
 	 * @return
 	 */
 	public Stmt maybeGenerateReturnStmt(MethodDecl decl, Expr expr) {
+		if (decl.isVoid())
+			return new ExprStmt(expr);
+		else
+			return new ReturnStmt(expr);
+	}
+
+	/**
+	 * generate {@link AST.Stmt Stmt} for {@link AST.CompositeMethodDecl
+	 * CompositeMethodDecl}. if return value of {@code <decl>} is void, generate
+	 * {@link AST.ExprStmt ExprStmt}, otherwise, generate {@link AST.ReturnStmt
+	 * ReturnStmt}
+	 * 
+	 * @param decl
+	 * @param expr
+	 * @return
+	 */
+	public Stmt maybeGenerateReturnStmt(CompositeMethodDecl decl, Expr expr) {
 		if (decl.isVoid())
 			return new ExprStmt(expr);
 		else
@@ -201,6 +219,10 @@ public class Generator {
 	 * @see #createPublicModifier(Modifiers)
 	 */
 	public Modifiers createPublicModifierFor(NamedMember decl) {
+		return createPublicModifier(decl.getModifiers());
+	}
+
+	public Modifiers createPublicModifierFor(CompositeMethodDecl decl) {
 		return createPublicModifier(decl.getModifiers());
 	}
 

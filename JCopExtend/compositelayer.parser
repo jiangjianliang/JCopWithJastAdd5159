@@ -3,22 +3,39 @@ ClassDecl class_declaration = composite_layer_decl.c {: return c; :};
 
 CompositeLayerDecl composite_layer_decl = 
 	modifiers.m CLAYER IDENTIFIER super.s? composite_layer_body.b 
-	{: return new CompositeLayerDecl(/*implements*/new List(), new Modifiers(m), IDENTIFIER, s, b); :};
+	{: return new CompositeLayerDecl(/*implements*/new List(), /*bodys*/new List(), new Modifiers(m), IDENTIFIER, s, b); :};
 
 BodyDecl class_body_declaration = open_composite_layer_declaration.c {: return c; :};
 
 //OpenCompositeLayerDecl
 OpenCompositeLayerDecl open_composite_layer_declaration =
-    CLAYER IDENTIFIER composite_layer_body.b{: return new OpenCompositeLayerDecl(IDENTIFIER, b); :}
-	;
+    CLAYER IDENTIFIER composite_layer_body.b
+	{: return new OpenCompositeLayerDecl(IDENTIFIER, b); :};
+	
 List composite_layer_body =
-    LBRACE composite_rule_list.l RBRACE     {: return l; :}
+    LBRACE composite_member_list.l RBRACE     {: return l; :}
 	| LBRACE RBRACE							{: return new List(); :}
 	;
-List composite_rule_list =
-    composite_rule.c                     {: return new List().add(c); :}
-    | composite_rule_list.l composite_rule.c   {: return l.add(c); :}
+
+List composite_member_list = 
+	composite_member.m 					{: return new List().add(m); :}
+	| composite_member_list.l composite_member.m {: return l.add(m); :}
 	;
-CompositeRuleDecl composite_rule=
-    simple_name.f COLON class_instance_creation_expression.e  SEMICOLON            {: return new CompositeRuleDecl(f, e); :}
+	
+CompositeMemberDecl composite_member = 
+	SEMICOLON				{: return new CompositePlaceholder(); :}
+	| composite_rule.cr		{: return cr; :}
+	| composite_method.cm	{: return cm; :}
 	;
+	
+CompositeRuleDecl composite_rule = 
+	simple_name.pattern COLON class_instance_creation_expression.e SEMICOLON
+	{: return new CompositeRuleDecl(pattern, e); :};
+	
+CompositeMethodDecl composite_method =
+	  modifiers.m? type.retType name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN throws.exceptions? SEMICOLON
+	  {: return new CompositeMethodDecl(new Modifiers(m), retType, pattern, params, exceptions); :};
+
+CompositeMethodDecl composite_method =
+	modifiers.m? VOID name_pattern.pattern LPAREN formal_parameter_list.params? RPAREN throws.exceptions? SEMICOLON
+	{: return new CompositeMethodDecl(new Modifiers(m), new PrimitiveTypeAccess("void"), pattern, params, exceptions); :};

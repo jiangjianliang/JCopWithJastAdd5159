@@ -21,7 +21,6 @@ public class LayerProxy extends Layer {
 	}
 
 	public Layer get() {
-		System.err.println("error");
 		return l;
 	}
 
@@ -31,23 +30,17 @@ public class LayerProxy extends Layer {
 			return l;
 		}
 		
-		//System.err.println("right");
 		Layer toBeReturned = (Layer) map.get(target);
 		if (toBeReturned == null) {
-			//System.out.println("toBeReturned == null");
 			if (l.match(target)) {// inferring l instanceof CompositeLayer ==
 									// true
-				//System.err.println("match!");
 				((CompositeLayer) l).collectInfo(target, map);
 			}
 			toBeReturned = l;
 		} else if (toBeReturned instanceof CompositeLayer) {
 			((CompositeLayer) toBeReturned).collectInfo(target, map);
 		}// else, l is not a composite layer
-		for(Entry<Object, Layer> entry :map.entrySet()){
-			System.out.println(entry.getKey()+":"+entry.getValue().getName());
-		}
-		System.out.println();
+		
 		return toBeReturned;
 	}
 

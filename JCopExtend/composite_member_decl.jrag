@@ -1,0 +1,10 @@
+aspect CompositeMemberDecl{
+	//
+	inh TypeDecl CompositeMemberDecl.hostType();
+	
+	//default
+	public void CompositeMemberDecl.toString(StringBuffer s){
+	
+	}
+	
+}

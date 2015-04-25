@@ -1,4 +1,6 @@
-package jcop.generation.layers;
+package jcop.generation.compositelayer;
+
+import java.util.Set;
 
 import AST.ASTNode;
 import AST.Access;
@@ -107,13 +109,13 @@ public class OpenCompositeLayerDeclGenerator extends Generator {
 	 * </code>
 	 * </pre>
 	 * 
+	 * @param rules
 	 * @return
 	 */
-	public MethodDecl generateCollectInfoMethod() {
+	public MethodDecl generateCollectInfoMethod(Set<CompositeRuleDecl> rules) {
 		// construct method-body
 		List<Stmt> bodyList = new List<Stmt>();
-		for (CompositeRuleDecl compositeRule : compositeLayer
-				.getCompositeRuleDeclList()) {
+		for (CompositeRuleDecl compositeRule : rules) {
 			bodyList.add(generateCollectInfoStmt(compositeRule));
 		}
 		Block body = new Block(bodyList);
@@ -135,8 +137,7 @@ public class OpenCompositeLayerDeclGenerator extends Generator {
 		MethodDecl method = new MethodDecl(modifiers, new PrimitiveTypeAccess(
 				"void"), "collectInfo", params, exceptions,
 				new Opt<Block>(body));
-		// for-test
-		// System.err.println(method.toString());
+
 		return method;
 	}
 
@@ -164,13 +165,10 @@ public class OpenCompositeLayerDeclGenerator extends Generator {
 				"target"))).qualifiesAccess(new MethodAccess(methodName,
 				new List<Expr>()));
 
-		// Stmt stmt = new ExprStmt(
-		// new VarAccess("map").qualifiesAccess(new MethodAccess("put",
-		// params)));
 		Stmt stmt = new ExprStmt(
 				new VarAccess("map").qualifiesAccess(createMethodAccess("put",
 						expr, compositeRule.getLayerIns())));
 		return stmt;
 	}
-
+	
 }
